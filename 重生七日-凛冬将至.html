@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>重生七日 · 凛冬将至</title>
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#101620; --panel2:#151d2a; --line:#233046;
+    --txt:#cfd8e3; --dim:#7d8b9d; --ice:#8fd0ff; --ice2:#5aa7d8;
+    --warn:#ff9d76; --good:#8fe3a0; --gold:#ffd98a; --bad:#ff7a7a;
+    --mainbg:rgba(16,22,32,.66); --hdrbg:rgba(10,14,20,.92);
+    --choicehover:#1a2436; --vig:rgba(2,5,10,.55);
+  }
+  body.t-hearth{
+    --bg:#161009; --panel:#201710; --panel2:#2a1e13; --line:#4a3822;
+    --txt:#ecdcc4; --dim:#a08a6c; --ice:#ffc98a; --ice2:#d8a05e;
+    --gold:#ffe3a6; --warn:#ff9d76; --good:#a8e39a; --bad:#ff7a7a;
+    --mainbg:rgba(32,23,16,.66); --hdrbg:rgba(22,16,9,.92);
+    --choicehover:#332516; --vig:rgba(5,3,1,.55);
+  }
+  body.t-journal{
+    --bg:#e9e0cd; --panel:#f2ead8; --panel2:#e6dccb; --line:#c4b391;
+    --txt:#4a3f2d; --dim:#8a7a5c; --ice:#3e6e8f; --ice2:#5a8aa8;
+    --gold:#a8742a; --warn:#c05a30; --good:#3e7a4a; --bad:#b03a3a;
+    --mainbg:rgba(242,234,216,.82); --hdrbg:rgba(233,224,205,.94);
+    --choicehover:#ddd0b4; --vig:rgba(120,100,70,.22);
+  }
+  body.t-term{
+    --bg:#050b06; --panel:#081108; --panel2:#0b170c; --line:#1c3a1e;
+    --txt:#b8e6b8; --dim:#5f8f62; --ice:#7ee387; --ice2:#4aa855;
+    --gold:#d8ffa0; --warn:#ffb37a; --good:#7ee387; --bad:#ff8a8a;
+    --mainbg:rgba(8,17,8,.72); --hdrbg:rgba(5,11,6,.92);
+    --choicehover:#0e2410; --vig:rgba(0,4,0,.6);
+  }
+  body.t-blood{
+    --bg:#120a0c; --panel:#1a0f11; --panel2:#241417; --line:#42232a;
+    --txt:#e3cfd2; --dim:#9d7f85; --ice:#f0a8a8; --ice2:#c46a6a;
+    --gold:#ffd98a; --warn:#ff9d76; --good:#9adfa8; --bad:#ff5a5a;
+    --mainbg:rgba(26,15,17,.66); --hdrbg:rgba(18,10,12,.92);
+    --choicehover:#2e181c; --vig:rgba(8,3,4,.55);
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.75; overflow-x:hidden;
+  }
+  #snow{position:fixed; inset:0; pointer-events:none; z-index:50;}
+  #vignette{position:fixed; inset:0; pointer-events:none; z-index:49;
+    background:radial-gradient(ellipse at center, transparent 55%, var(--vig) 100%);}
+  #app{max-width:680px; margin:0 auto; padding:12px 14px 60px; position:relative; z-index:5;}
+  header{
+    position:sticky; top:0; z-index:20; background:var(--hdrbg);
+    backdrop-filter:blur(6px); border-bottom:1px solid var(--line);
+    margin:-12px -14px 10px; padding:10px 16px 8px;
+  }
+  .hrow{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; justify-content:space-between;}
+  .daytag{font-size:15px; letter-spacing:2px; color:var(--ice); font-weight:600;}
+  .daytag b{color:var(--gold); font-weight:700;}
+  .temp{font-size:13px; color:var(--dim);}
+  .temp b{color:var(--ice); font-weight:600;}
+  .money{font-size:15px; color:var(--gold); font-weight:700; font-variant-numeric:tabular-nums;}
+  .slotrow{display:flex; gap:6px; margin-top:6px;}
+  .slotdot{flex:1; height:4px; border-radius:2px; background:var(--line);}
+  .slotdot.on{background:var(--ice2);}
+  .slotdot.now{background:var(--gold); box-shadow:0 0 8px rgba(255,217,138,.6);}
+  #stats{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:12px;
+  }
+  .rgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px 10px;}
+  .ritem{font-size:12.5px; color:var(--dim); white-space:nowrap;}
+  .ritem b{color:var(--txt); font-weight:600; font-variant-numeric:tabular-nums;}
+  .hstats{display:flex; flex-wrap:wrap; gap:4px 14px; margin-top:8px; padding-top:8px; border-top:1px dashed var(--line); font-size:12px; color:var(--dim);}
+  .hstats b{font-weight:600;}
+  .storbar{height:5px; background:var(--line); border-radius:3px; margin-top:8px; overflow:hidden;}
+  .storfill{height:100%; background:linear-gradient(90deg,var(--ice2),var(--ice)); border-radius:3px;}
+  .storfill.danger{background:linear-gradient(90deg,#a04030,var(--warn));}
+  #main{
+    background:var(--mainbg); border:1px solid var(--line); border-radius:12px;
+    padding:20px 20px 16px; min-height:280px;
+  }
+  .scenetitle{
+    font-family:"Noto Serif SC","Songti SC",serif; color:var(--ice);
+    font-size:17px; letter-spacing:3px; margin-bottom:12px; padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  #text{
+    font-family:"Noto Serif SC","Songti SC",serif; font-size:15.5px; white-space:pre-line;
+    min-height:150px; text-align:justify;
+  }
+  #text .fx-good{color:var(--good);} #text .fx-bad{color:var(--bad);}
+  #text .fx-warn{color:var(--warn);} #text .fx-gold{color:var(--gold);} #text .fx-ice{color:var(--ice);}
+  #choices{display:flex; flex-direction:column; gap:8px; margin-top:16px;}
+  .choice{
+    text-align:left; background:var(--panel2); color:var(--txt);
+    border:1px solid var(--line); border-radius:8px; padding:10px 14px;
+    font-size:14.5px; cursor:pointer; transition:all .15s; font-family:inherit; line-height:1.5;
+  }
+  .choice:hover:not(:disabled){border-color:var(--ice2); background:var(--choicehover); transform:translateX(3px);}
+  .choice:disabled{opacity:.38; cursor:not-allowed;}
+  .choice .sub{display:block; font-size:12px; color:var(--dim); margin-top:2px;}
+  .choice .price{color:var(--gold); font-variant-numeric:tabular-nums;}
+  .choice .risen{color:var(--warn);}
+  .divider{border:none; border-top:1px dashed var(--line); margin:4px 0;}
+  #footer{margin-top:14px; text-align:center; font-size:12px; color:var(--dim);}
+  #footer button{
+    background:none; border:1px solid var(--line); color:var(--dim); border-radius:6px;
+    padding:4px 14px; cursor:pointer; font-size:12px; margin:0 6px;
+  }
+  .ending-wrap{text-align:center; padding:10px 0;}
+  .ending-title{
+    font-family:"Noto Serif SC","Songti SC",serif; font-size:26px; letter-spacing:8px;
+    color:var(--gold); margin:18px 0 6px;
+  }
+  .ending-sub{color:var(--dim); font-size:13px; letter-spacing:2px; margin-bottom:18px;}
+  .survive-big{font-size:52px; font-weight:700; color:var(--ice); font-variant-numeric:tabular-nums; line-height:1.2;}
+  .survive-big small{font-size:16px; color:var(--dim); font-weight:400;}
+  .rank{display:inline-block; border:1px solid var(--gold); color:var(--gold); border-radius:6px;
+    padding:2px 18px; letter-spacing:6px; margin:10px 0 16px; font-size:15px;}
+  .breakdown{
+    text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:12px 16px; font-size:13px; margin:12px 0; color:var(--dim);
+  }
+  .breakdown b{color:var(--txt);}
+  .ending-text{
+    font-family:"Noto Serif SC","Songti SC",serif; text-align:justify; white-space:pre-line;
+    font-size:15px; margin:14px 0;
+  }
+  .title-screen{display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:78vh; text-align:center;}
+  .game-title{
+    font-family:"Noto Serif SC","Songti SC",serif; font-size:42px; letter-spacing:14px;
+    color:var(--ice); text-shadow:0 0 30px rgba(143,208,255,.35); margin-bottom:4px;
+  }
+  .game-subtitle{color:var(--dim); letter-spacing:6px; font-size:14px; margin-bottom:36px;}
+  .start-btn{
+    background:transparent; border:1px solid var(--ice2); color:var(--ice); font-family:inherit;
+    font-size:16px; letter-spacing:8px; padding:12px 44px; border-radius:8px; cursor:pointer; transition:all .25s;
+  }
+  .start-btn:hover{background:rgba(143,208,255,.12); box-shadow:0 0 24px rgba(143,208,255,.25);}
+  .hint{color:var(--dim); font-size:12px; margin-top:22px; letter-spacing:1px;}
+  .blink{animation:blink 1.2s infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  .fadein{animation:fadein .4s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+  #gearbtn{
+    position:fixed; right:14px; bottom:14px; z-index:60;
+    background:var(--panel2); color:var(--dim); border:1px solid var(--line);
+    border-radius:20px; padding:6px 16px; font-size:12.5px; cursor:pointer;
+    letter-spacing:2px; font-family:inherit;
+  }
+  #gearbtn:hover{color:var(--ice); border-color:var(--ice2);}
+  #themepanel{
+    position:fixed; right:14px; bottom:56px; z-index:61;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; width:190px; box-shadow:0 8px 30px rgba(0,0,0,.5);
+  }
+  #themepanel h4{font-size:13px; color:var(--dim); letter-spacing:3px; margin-bottom:10px; font-weight:400;}
+  .themeopt{
+    display:flex; align-items:center; gap:8px; width:100%;
+    background:none; border:1px solid transparent; color:var(--txt);
+    border-radius:7px; padding:6px 8px; font-size:13px; cursor:pointer; font-family:inherit;
+    text-align:left; margin-bottom:2px;
+  }
+  .themeopt:hover{border-color:var(--line);}
+  .themeopt.on{border-color:var(--gold); color:var(--gold);}
+  .tdots{display:inline-flex; gap:3px;}
+  .tdots i{width:9px; height:9px; border-radius:50%; display:inline-block;}
+  #charov{
+    position:fixed; inset:0; z-index:55; display:none;
+    background:var(--vig); backdrop-filter:blur(3px);
+    overflow-y:auto; padding:30px 14px;
+  }
+  .charbox{
+    max-width:560px; margin:0 auto; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px; padding:18px 18px 14px;
+  }
+  .charhead{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .chartitle{font-family:"Noto Serif SC","Songti SC",serif; font-size:19px; letter-spacing:4px; color:var(--ice);}
+  .charclose{
+    background:none; border:1px solid var(--line); color:var(--dim); border-radius:6px;
+    padding:3px 12px; cursor:pointer; font-size:12px; font-family:inherit;
+  }
+  .charclose:hover{color:var(--bad); border-color:var(--bad);}
+  .ctabs{display:flex; gap:8px; margin-bottom:14px;}
+  .ctab{
+    flex:1; background:var(--panel2); border:1px solid var(--line); color:var(--dim);
+    border-radius:8px; padding:7px 0; font-size:14px; cursor:pointer; font-family:inherit; letter-spacing:3px;
+  }
+  .ctab.on{color:var(--gold); border-color:var(--gold);}
+  .chip{
+    display:inline-block; border:1px solid var(--line); color:var(--txt);
+    border-radius:14px; padding:2px 12px; font-size:12.5px; margin:2px 4px 2px 0;
+  }
+  .chip.got{color:var(--gold); border-color:var(--gold);}
+  .chip.lock{color:var(--dim); opacity:.55;}
+  .rescard{
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; margin-bottom:8px;
+  }
+  .rescard .rname{font-size:14px; color:var(--txt);}
+  .rescard .rname b{color:var(--gold); font-variant-numeric:tabular-nums;}
+  .rescard .rdesc{font-size:12px; color:var(--dim); margin-top:3px; line-height:1.6;}
+  .oslot{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:1px dashed var(--line); padding:7px 2px; font-size:14px;
+  }
+  .oslot .oname{color:var(--dim); font-size:12.5px; letter-spacing:2px;}
+  .oslot .oval{color:var(--txt); font-family:"Noto Serif SC","Songti SC",serif;}
+  .otier{
+    text-align:center; border:1px solid var(--gold); color:var(--gold); border-radius:8px;
+    padding:5px 0; letter-spacing:5px; font-size:14px; margin-bottom:12px;
+    font-family:"Noto Serif SC","Songti SC",serif;
+  }
+  .odesc{font-size:12.5px; color:var(--dim); text-align:center; margin:10px 0 4px; line-height:1.7;}
+  @media (max-width:480px){
+    .rgrid{grid-template-columns:repeat(3,1fr);}
+    #main{padding:14px;}
+    .game-title{font-size:32px; letter-spacing:9px;}
+  }
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+<div id="vignette"></div>
+<div id="app">
+  <header id="hdr" style="display:none">
+    <div class="hrow">
+      <span class="daytag">第 <b id="hday">1</b> / 7 天 · <span id="hslot">早晨</span></span>
+      <span class="temp">室外 <b id="htemp">12°C</b></span>
+      <span class="money" id="hmoney">¥ 0</span>
+    </div>
+    <div class="slotrow" id="slotrow"></div>
+  </header>
+  <div id="stats" style="display:none"></div>
+  <main id="main"></main>
+  <div id="footer" style="display:none">
+    <button id="btn-char">人物</button>
+    <button id="btn-restart">重新开始</button>
+    <span>进度自动保存于本机</span>
+  </div>
+</div>
+<div id="charov"></div>
+<button id="gearbtn">主题</button>
+<div id="themepanel" style="display:none"></div>
+<script>
+var VERSION="v1.3";
+var TEMPS=[12,9,6,2,-3,-9,-16];
+var SLOTNAMES=["早晨","上午","下午","夜晚"];
+var PRICE=[1,1.15,1.4,1.9,2.6,3.8,5.5];
+var CAP_HOME=140, CAP_WH=260;
+
+var RES_DEF=[
+  ["food","食物(天)"],["water","饮水(天)"],["warmth","保暖"],["fuel","燃料"],
+  ["meds","药品"],["hygiene","卫生"],["tools","器械"],["barter","硬通货"]
+];
+
+var LOCS={
+  home:{name:"家",sub:"整理·加固·藏货·休息"},
+  market:{name:"大润发超市",sub:"食品·水·日用品",expo:4},
+  wholesale:{name:"城北批发市场",sub:"大宗采购更划算",expo:3},
+  pharmacy:{name:"同仁药房",sub:"药品·维生素",expo:5},
+  hardware:{name:"五金百货",sub:"防寒·工具·火炉燃料",expo:3},
+  gas:{name:"加油站",sub:"汽油·柴油",expo:3},
+  bank:{name:"银行 / 二手车行",sub:"取现·网贷·卖车",expo:0},
+  black:{name:"地下黑市",sub:"晚8点后·货杂价乱",expo:8}
+};
+
+var BUNDLES=[
+  {id:"sup_rice",loc:"market",name:"米面主食堆",desc:"大米、面粉、挂面各二十斤",price:1100,res:{food:9},minD:1,maxD:6},
+  {id:"sup_noodle",loc:"market",name:"方便速食",desc:"方便面、自热锅、压缩饼干",price:850,res:{food:7},minD:1,maxD:5},
+  {id:"sup_can",loc:"market",name:"罐头军粮",desc:"肉罐头、水果罐头、军用口粮",price:1500,res:{food:11},minD:1,maxD:6},
+  {id:"sup_water",loc:"market",name:"瓶装水整箱",desc:"4箱共96瓶",price:420,res:{water:9},minD:1,maxD:6},
+  {id:"sup_salt",loc:"market",name:"盐糖基础装",desc:"食盐、白糖、茶叶",price:320,res:{barter:11},minD:1,maxD:7},
+  {id:"sup_hyg",loc:"market",name:"卫生用品",desc:"纸巾、湿巾、垃圾袋",price:260,res:{hygiene:9},minD:1,maxD:6},
+  {id:"sup_choco",loc:"market",name:"高热量零食",desc:"巧克力、奶粉、能量棒",price:600,res:{food:2,barter:8},minD:1,maxD:5},
+  {id:"whs_rice",loc:"wholesale",name:"整袋米面(200kg)",desc:"批发价,量大",price:950,res:{food:14},minD:1,maxD:5,car:true},
+  {id:"whs_water",loc:"wholesale",name:"桶装水(10桶)",desc:"每桶18.9L",price:360,res:{water:12},minD:1,maxD:5,car:true},
+  {id:"whs_meat",loc:"wholesale",name:"冻肉批发",desc:"猪肉、鸡肉、鱼,需冷冻",price:1900,res:{food:10},minD:1,maxD:4,car:true},
+  {id:"whs_salt",loc:"wholesale",name:"盐糖整箱",desc:"末世硬通货",price:520,res:{barter:26},minD:1,maxD:5},
+  {id:"whs_liq",loc:"wholesale",name:"平价白酒(整箱)",desc:"高度粮食酒,硬通货兼社交",price:800,res:{barter:20},minD:1,maxD:6},
+  {id:"ph_basic",loc:"pharmacy",name:"家庭药箱",desc:"感冒药、退烧药、消炎药、纱布",price:620,res:{meds:11},minD:1,maxD:5},
+  {id:"ph_rx",loc:"pharmacy",name:"处方抗生素",desc:"阿莫西林、头孢,柜台后压着卖",price:1250,res:{meds:14},minD:1,maxD:4},
+  {id:"ph_vit",loc:"pharmacy",name:"维生素片",desc:"维C维B,预防坏血病",price:300,res:{meds:4},minD:1,maxD:6},
+  {id:"hw_cold",loc:"hardware",name:"防寒装备",desc:"加厚羽绒服、雪地靴、护耳",price:1450,res:{warmth:14},minD:1,maxD:6},
+  {id:"hw_sleep",loc:"hardware",name:"睡袋军大衣",desc:"-30度睡袋两件、军大衣三件",price:780,res:{warmth:9},minD:1,maxD:6},
+  {id:"hw_tool",loc:"hardware",name:"工具防护套装",desc:"工具组、防割手套、钢管、门闩",price:680,res:{tools:13},minD:1,maxD:6},
+  {id:"hw_gen",loc:"hardware",name:"二手发电机",desc:"柴油发电机,老板说只此一台",price:3600,res:{warmth:16},minD:1,maxD:4},
+  {id:"hw_stove",loc:"hardware",name:"火炉+煤球",desc:"铸铁火炉、引火物、煤球两百个",price:640,res:{fuel:14},minD:1,maxD:6},
+  {id:"gas_fuel",loc:"gas",name:"汽油(100L)",desc:"金属桶装,可用于发电和取暖",price:820,res:{fuel:18},minD:1,maxD:7,car:true},
+  {id:"bm_box",loc:"black",name:"神秘货箱",desc:"来路不明,里面是什么看运气",price:2100,res:{food:8,water:6,warmth:4},minD:5,maxD:7},
+  {id:"bm_mil",loc:"black",name:"军用御寒物资",desc:"军用大衣、极地睡袋",price:1900,res:{warmth:18},minD:5,maxD:7},
+  {id:"bm_med",loc:"black",name:"紧缺药品",desc:"抗生素、处方药,药房断货的这里都有",price:1600,res:{meds:16},minD:5,maxD:7},
+  {id:"bm_cheap",loc:"black",name:"各类尾货",desc:"倒爷手里的杂货,便宜量大",price:1300,res:{food:7,water:5,hygiene:6},minD:5,maxD:7}
+];
+
+var NEWS=[
+  "晚间新闻:「本周将迎来较强冷空气,请市民注意添衣」。热评第一:每年都这么吓唬人,标题党。",
+  "气象论坛炸锅:「西伯利亚高压异常增强,数值模式史上罕见」。官方回应:属正常波动。",
+  "寒潮蓝色预警升级为黄色。超市里,矿泉水和方便面的货架第一次被搬空了一半。",
+  "动物园通报:部分动物出现异常躁动,专家称「季节性行为」。天文爱好者拍到正午的太阳,白得发青。",
+  "全城抢购潮!各大商超发布限购令,派出所进驻维持秩序。有人扛着五袋米在收银台打架。",
+  "银行宣布临时限提,物流全面停运。小区群里,辟谣帖和求购帖在同一个屏幕里翻滚。",
+  "暴雪红色预警:建议居民勿外出。中午十二点,天黑得像傍晚。"
+];
+
+var S=null;
+var CURRENT_TEXT="";
+var TYPE_TIMER=null;
+
+function newGame(){
+  return {
+    day:1, slot:0, money:3563, bank:48000, loanTaken:false,
+    res:{food:0,water:0,warmth:0,fuel:0,meds:0,hygiene:0,tools:0,barter:0},
+    expo:0, fatigue:0, karma:0, trust:20, neighbor:30, defense:5,
+    hasCar:true, dog:false, chen:false, warehouse:false,
+    familyFlag:false, sisterInvited:false, lentZhang:false, allyZhang:false,
+    lottery:"none", toldMom:false, reinCount:0, outfit:{},
+    beats:{}, flags:{}, ending:null, visitedToday:{}
+  };
+}
+
+function fmt(n){return "¥ "+Math.round(n).toLocaleString("en-US");}
+function priceOf(b){return Math.round(b.price*(b.loc==="black"?0.8:PRICE[S.day-1]));}
+function resSum(){var t=0; for(var k in S.res) t+=S.res[k]; return t;}
+function capacity(){return CAP_HOME+(S.warehouse?CAP_WH:0);}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function save(){try{localStorage.setItem("rebirth7_save",JSON.stringify(S));}catch(e){}}
+function load(){try{var d=localStorage.getItem("rebirth7_save"); return d?JSON.parse(d):null;}catch(e){return null;}}
+function wipe(){try{localStorage.removeItem("rebirth7_save");}catch(e){}}
+
+function fx(txt,cls){return txt;}
+
+function scene(title,text,choices){
+  if(typeof choices==="string"){ text=text+"\n\n"+choices; choices=[]; }
+  if(!Array.isArray(choices)) choices=[];
+  choices=choices.filter(function(c){return c&&typeof c==="object"&&typeof c.t==="string"&&typeof c.fn==="function";});
+  if(choices.length===0&&arguments.length>=3){ choices=[{t:"继续",fn:function(){nextSlot();}}]; }
+  var m=document.getElementById("main");
+  var ch="";
+  for(var i=0;i<choices.length;i++){
+    var c=choices[i];
+    var dis=c.disabled?"disabled":"";
+    var sub=c.sub?'<span class="sub">'+c.sub+"</span>":"";
+    ch+='<button class="choice fadein" data-i="'+i+'" '+dis+">"+c.t+sub+"</button>";
+  }
+  m.innerHTML=(title?'<div class="scenetitle">'+title+"</div>":"")+
+    '<div id="text"></div><div id="choices" style="display:none">'+ch+"</div>";
+  CURRENT_TEXT=text;
+  var btns=m.querySelectorAll(".choice");
+  for(var j=0;j<btns.length;j++){
+    (function(b){b.onclick=function(){ if(b.disabled)return; stopType(); document.getElementById("text").innerHTML=colorize(CURRENT_TEXT); revealChoices(); choices[parseInt(b.getAttribute("data-i"),10)].fn(); };})(btns[j]);
+  }
+  startType(text);
+  renderStats(); save();
+}
+function colorize(t){
+  return t;
+}
+function startType(text){
+  stopType();
+  var el=document.getElementById("text");
+  el.innerHTML="";
+  var i=0;
+  TYPE_TIMER=setInterval(function(){
+    i+=2;
+    el.textContent=text.slice(0,i);
+    if(i>=text.length){stopType(); revealChoices();}
+  },18);
+  el.onclick=function(){stopType(); el.textContent=text; revealChoices();};
+}
+function stopType(){if(TYPE_TIMER){clearInterval(TYPE_TIMER); TYPE_TIMER=null;}}
+function revealChoices(){var c=document.getElementById("choices"); if(c)c.style.display="flex";}
+
+function renderStats(){
+  var st=document.getElementById("stats");
+  if(!S||S.ending){st.style.display="none";return;}
+  var h="";
+  for(var i=0;i<RES_DEF.length;i++){
+    var k=RES_DEF[i][0], n=RES_DEF[i][1];
+    h+='<div class="ritem">'+n+' <b>'+S.res[k]+"</b></div>";
+  }
+  var used=resSum(), cap=capacity();
+  var pct=Math.min(100,Math.round(used/cap*100));
+  var expoColor=S.expo>=60?"var(--bad)":(S.expo>=40?"var(--warn)":"var(--txt)");
+  h+='<div class="storbar"><div class="storfill'+(pct>=90?" danger":"")+'" style="width:'+pct+'%"></div></div>';
+  h+='<div class="hstats">'+
+     "<span>仓储 <b>"+used+"/"+cap+"</b></span>"+
+     "<span>显眼度 <b style=\"color:"+expoColor+"\">"+S.expo+"</b></span>"+
+     "<span>疲劳 <b>"+S.fatigue+"</b></span>"+
+     "<span>防御 <b>"+S.defense+"</b></span>"+
+     "<span>家人信任 <b>"+S.trust+"</b></span>"+
+     "<span>邻里 <b>"+S.neighbor+"</b></span>"+
+     "<span>人心 <b>"+S.karma+"</b></span>"+
+     (S.warehouse?"<span style=\"color:var(--good)\">已租仓库</span>":"")+
+     (S.dog?"<span>煤球</span>":"")+
+     (S.chen?"<span>老陈</span>":"")+
+     (S.hasCar?"":"<span style=\"color:var(--dim)\">已卖车</span>")+
+     "</div>";
+  if(S.night){
+    var nd=NIGHT_DAYS[S.night.i],nn=S.night;
+    var danger=nn.hunger>0||nn.thirst>0||nn.frost>0||nn.sick>0;
+    h+='<div class="hstats" style="margin-top:6px;border-top:1px dashed var(--line);padding-top:6px;'+(danger?"color:var(--warn)":"")+'">末世第 '+nd+' 天 · 室外 '+NIGHT_TEMP[nd]+'°C · 饥饿'+nn.hunger+'/7 · 缺水'+nn.thirst+'/4 · 冻伤'+nn.frost+'/6 · 病'+nn.sick+'/6</div>';
+  }
+  st.innerHTML=h; st.style.display="block";
+  if(S.night){
+    document.getElementById("hday").textContent="夜"+NIGHT_DAYS[S.night.i];
+    document.getElementById("hslot").textContent="熬冬";
+    document.getElementById("htemp").textContent=NIGHT_TEMP[NIGHT_DAYS[S.night.i]]+"°C";
+  } else {
+    document.getElementById("hday").textContent=S.day;
+    document.getElementById("hslot").textContent=SLOTNAMES[S.slot];
+    document.getElementById("htemp").textContent=TEMPS[S.day-1]+"°C";
+  }
+  document.getElementById("hmoney").textContent=fmt(S.money+(document.getElementById?0:0));
+  var sr="";
+  for(var s2=0;s2<4;s2++) sr+='<div class="slotdot'+(s2<S.slot?" on":(s2===S.slot?" now":""))+'"></div>';
+  document.getElementById("slotrow").innerHTML=sr;
+  document.getElementById("hdr").style.display="block";
+  document.getElementById("footer").style.display="block";
+}
+
+function gainRes(effects,mult){
+  var lines=[], cap=capacity();
+  for(var k in effects){
+    var want=Math.round(effects[k]*(mult||1));
+    if(want<=0)continue;
+    var room=cap-resSum();
+    var got=Math.min(want,Math.max(0,room));
+    if(got>0){S.res[k]+=got; lines.push(k==="food"||k==="water"?({food:"食物",water:"饮水"})[k]+" +"+got+"天":({warmth:"保暖",fuel:"燃料",meds:"药品",hygiene:"卫生",tools:"器械",barter:"硬通货"})[k]+" +"+got);}
+    if(got<want) lines.push("仓储已满,"+({food:"食物",water:"饮水",warmth:"保暖",fuel:"燃料",meds:"药品",hygiene:"卫生",tools:"器械",barter:"硬通货"})[k]+"有 "+(want-got)+" 装不下了");
+  }
+  return lines;
+}
+
+function nextSlot(){
+  S.slot++;
+  if(S.slot>3){ endOfDay(); return; }
+  var beat=storyBeat();
+  if(beat){ beat(); }
+  else showMap();
+}
+
+function endOfDay(){
+  S.fatigue=Math.max(0,S.fatigue-18);
+  if(S.day>=7){ finale(); return; }
+  S.day++; S.slot=0; S.visitedToday={};
+  scene("第 "+(S.day-1)+" 天 · 深夜", NEWS[S.day-2]+"\n\n你清点着屋子里的物资,在清单上打勾。窗外,风声比昨天更急了。\n\n(疲劳已部分恢复)",[{t:"第 "+S.day+" 天,还有 "+(8-S.day)+" 天",fn:function(){ var b=storyBeat(); if(b)b(); else showMap(); }}]);
+}
+
+function showMap(){
+  var tempTxt=TEMPS[S.day-1];
+  var ambiance=[
+    "清晨的阳光还算正常,小区里有老人在晨练,一切都显得那么平静。",
+    "上午,街上人来人往。没人知道倒计时正在走。",
+    "午后的天色有些发灰,风里开始带一点不合时宜的凉。",
+    "夜幕降临,气温骤降。楼下的路灯下,能看见自己的呼吸变成白雾。"
+  ][S.slot];
+  var warns=[];
+  if(S.fatigue>=70)warns.push("你眼皮沉得厉害——太疲劳的话,采购效率会大打折扣。");
+  if(S.expo>=60)warns.push("你在小区里太显眼了。有人已经注意你家频繁进出的货车。");
+  if(S.day>=5)warns.push("城市正在失控,天黑后单独外出有风险。");
+  var pm=PRICE[S.day-1];
+  var txt=ambiance+"\n\n"+(S.day>=3?"今日物价约为平日的 "+pm+" 倍,而且还在涨。\n\n":"")+warns.join("\n");
+  var choices=[];
+  var locOrder=["market","wholesale","pharmacy","hardware","gas","bank","black","home"];
+  for(var i=0;i<locOrder.length;i++){
+    var id=locOrder[i], L=LOCS[id];
+    if(id==="black"&&!(S.slot===3&&S.day>=5))continue;
+    var sub=L.sub;
+    if(id!=="home"&&id!=="black"&&S.day>=3) sub+=" · 今日×"+pm;
+    if(id==="black") sub+=" · 有风险";
+    choices.push({t:L.name,sub:sub,fn:(function(lid){return function(){goLoc(lid);};})(id)});
+  }
+  scene(SLOTNAMES[S.slot]+" · 第 "+S.day+" 天",txt,choices);
+}
+
+function goLoc(id){
+  S.fatigue=clamp(S.fatigue+8,0,100);
+  if(id==="home"){ homeScene(); return; }
+  if(id==="bank"){ bankScene(); return; }
+  var L=LOCS[id];
+  var desc={
+    market:"货架还没有完全空,但收银队伍已经很长。你推着购物车,尽量让自己看起来像个普通顾客。",
+    wholesale:"批发市场里叉车来来往往。几个同样拖着平板车的男人和你擦肩而过——清醒的人,不止你一个。",
+    pharmacy:"药房的灯箱有一格坏了,闪着光。柜姐正在把最后几盒感冒药往柜台里收。",
+    hardware:"五金店的老板娘在打瞌睡。墙角那台二手发电机上贴着手写标签:急售。",
+    gas:"加油站排着队。电子屏上的油价数字,今天已经跳了两次。",
+    black:"城中村的巷子深处,卷帘门拉开一半。烟雾缭绕里,几双眼睛同时打量你。"
+  }[id];
+  shopScene(id,desc,0);
+}
+
+function shopScene(id,desc,buyCount){
+  var L=LOCS[id];
+  var lines=[];
+  if(buyCount>0)lines.push(desc2After(id));
+  var avail=BUNDLES.filter(function(b){return b.loc===id&&S.day>=b.minD&&S.day<=b.maxD;});
+  var limit=S.day>=5&&(id==="market"||id==="wholesale")?1:99;
+  var soldOut=BUNDLES.filter(function(b){return b.loc===id&&(S.day>b.maxD);});
+  var choices=[];
+  var anyAvail=false;
+  for(var i=0;i<avail.length;i++){
+    (function(b){
+      var p=priceOf(b);
+      var mult=1;
+      if(S.hasCar&&b.car)mult=1.25;
+      if(S.fatigue>=85)mult*=0.7;
+      var effTxt=[];
+      var names={food:"食物",water:"饮水",warmth:"保暖",fuel:"燃料",meds:"药品",hygiene:"卫生",tools:"器械",barter:"硬通货"};
+      for(var k in b.res){
+        var v=Math.round(b.res[k]*mult);
+        effTxt.push(names[k]+"+"+v+(k==="food"||k==="water"?"天":""));
+      }
+      var dis=buyCount>=limit||S.money<p;
+      choices.push({t:b.name+"<span class=\"price\"> "+fmt(p)+"</span>"+(PRICE[S.day-1]>1.3?' <span class="risen">涨</span>':""),
+        sub:b.desc+" · "+effTxt.join(", ")+(limit===1&&buyCount>=1?" · [限购]":"")+(dis&&S.money<p?" · 现金不足":""),
+        disabled:dis,
+        fn:function(){ doBuy(b,p,mult,id,desc,buyCount); }});
+      if(!dis)anyAvail=true;
+    })(avail[i]);
+  }
+  if(avail.length===0) lines.push("货架上空空如也,只剩价签在冷风里晃。");
+  if(soldOut.length>0) lines.push("老板摊手:「"+soldOut[0].name+"?三天前就没了。」");
+  if(limit===1&&buyCount>=1) lines.push("限购令下,这家店今天不能再买了。");
+  choices.push({t:"离开",fn:function(){ randomEventThen(id); }});
+  scene(LOCS[id].name,desc+"\n\n"+lines.join("\n"),choices);
+}
+
+function desc2After(id){
+  var m={
+    market:"收银员扫码的手都在抖。你把东西码进购物车最底层,上面盖了件旧外套。",
+    wholesale:"搬运工帮你把货装上车,你数了两遍,签了单。",
+    pharmacy:"柜姐盯着你买的量看了两秒:「你家……人多?」你笑笑没答。",
+    hardware:"老板娘醒了,帮你把发电机抬上推车:「这年头买这个的,你是第三个。」",
+    gas:"加油员小哥多看了你两眼:「加这么多,要出远门?」「嗯,回老家。」",
+    black:"卷帘门后的人把编织袋踢到你脚边,里面传来罐头碰撞的闷响。"
+  };
+  return m[id]||"";
+}
+
+function doBuy(b,p,mult,locId,desc,buyCount){
+  S.money-=p;
+  var lines=gainRes(b.res,mult);
+  S.expo=clamp(S.expo+LOCS[locId].expo,0,100);
+  S.fatigue=clamp(S.fatigue+4,0,100);
+  var extra="";
+  if(locId==="black"&&Math.random()<0.18){
+    var ks=[]; for(var k in b.res)ks.push(k);
+    var rk=ks[Math.floor(Math.random()*ks.length)];
+    var lost=Math.round(S.res[rk]*0.3);
+    S.res[rk]-=lost;
+    extra="\n\n回到家清点时你才发现,黑市的货短了三成。找谁说理去。("+({food:"食物",water:"饮水",warmth:"保暖",fuel:"燃料",meds:"药品",hygiene:"卫生",tools:"器械",barter:"硬通货"})[rk]+" -"+lost+")";
+  }
+  if(locId==="wholesale"&&S.day>=4&&(b.id==="whs_salt"||b.id==="whs_liq")&&Math.random()<0.15){
+    S.res.barter=Math.ceil(S.res.barter/2);
+    extra="\n\n后来你尝了一口——盐是苦的,假货。整箱都是。";
+  }
+  var canContinue=!(S.day>=5&&(locId==="market"||locId==="wholesale"));
+  var after=[
+    canContinue?{t:"继续采购",fn:function(){shopScene(locId,desc,buyCount+1);}}:null,
+    {t:"离开",fn:function(){randomEventThen(locId);}}
+  ].filter(Boolean);
+  scene(LOCS[locId].name,"付款成功。"+fmt(p)+"\n\n"+lines.join(" · ")+extra,after);
+}
+
+function randomEventThen(locId){
+  var pool=RANDOM_EVENTS.filter(function(e){return !e.cond||e.cond(locId);});
+  if(pool.length>0&&Math.random()<0.42){
+    var ev=pool[Math.floor(Math.random()*pool.length)];
+    ev.fn();
+  } else nextSlot();
+}
+
+function homeScene(){
+  var desc="九十平的老房子,是你唯一的堡垒。客厅已经堆起纸箱山,窗帘拉得严严实实。";
+  var choices=[];
+  choices.push({t:"加固门窗",sub:S.reinCount>=3?"已加固到极限":(S.res.tools>=8?"消耗器械3,提升防御":"需要器械≥8(五金店购买工具)"),disabled:S.res.tools<8||S.reinCount>=3,fn:function(){
+    S.res.tools-=3; S.reinCount++;
+    var inc=[18,12,6][S.reinCount-1]||6;
+    S.defense=clamp(S.defense+inc,0,100); S.fatigue=clamp(S.fatigue+8,0,100);
+    scene("家","你把钢管焊死在窗框内侧,门后顶上三角支架"+(S.chen?",老陈在旁边搭手,专业得像在搭积木。":"。手忙脚乱,但每一颗螺丝都是命。")+"\n\n防御 +"+inc,"",{t:"继续",fn:function(){randomEventThen("home");}});
+  }});
+  choices.push({t:"藏货伪装",sub:"把物资分散藏进吊顶、地板、假墙 (显眼度 -12)",fn:function(){
+    S.expo=clamp(S.expo-12,0,100); S.fatigue=clamp(S.fatigue+6,0,100);
+    scene("家","你把最显眼的纸箱拆掉,物资分装进黑色编织袋,塞进吊顶和床底。门口故意摆两袋垃圾,一副家徒四壁的样子。\n\n显眼度 -12","",{t:"继续",fn:function(){randomEventThen("home");}});
+  }});
+  if(!S.warehouse&&S.day<=5){
+    choices.push({t:"联系物流公司租仓库",sub:"¥2,800/月,城东小型仓库,仓储上限 +260,显眼度 -10",disabled:S.money<2800,fn:function(){
+      S.money-=2800; S.warehouse=true; S.expo=clamp(S.expo-10,0,100);
+      scene("家","电话那头的仓管打着哈欠:「这季节还有人租仓?行吧,钥匙明天给你,三个月起租。」\n\n从此你多了一个隐蔽的囤货点。粮草可以分兵了。\n\n仓储上限 +260,显眼度 -10","",{t:"继续",fn:function(){randomEventThen("home");}});
+    }});
+  }
+  if(S.warehouse&&S.slot===3){
+    choices.push({t:"深夜转移物资",sub:"趁夜把货分批搬去仓库 (显眼度 -15,疲劳 +10)",fn:function(){
+      S.expo=clamp(S.expo-15,0,100); S.fatigue=clamp(S.fatigue+10,0,100);
+      scene("家","凌晨两点,你像只搬家的老鼠,一趟一趟把编织袋运上借来的面包车。路口有巡防的车灯扫过,你灭灯屏息,等它过去。\n\n显眼度 -15","",{t:"继续",fn:function(){randomEventThen("home");}});
+    }});
+  }
+  if(S.day<7&&S.flags.callDay!==S.day){
+    choices.push({t:"给家里打电话",sub:"家人信任 +8(每天一次)",fn:function(){
+      S.flags.callDay=S.day;
+      S.trust=clamp(S.trust+8,0,100);
+      var t=S.trust;
+      var msg;
+      if(t<35)msg="你妈在电话里唠叨着让你别老吃外卖。你旁敲侧击:「妈,家里多囤点米面。」她笑:「囤啥囤,超市又跑不了。」";
+      else if(t<60)msg="你妈的声音迟疑了一些:「你上次说的那个……寒潮,电视上也有了。你爸让我买了两袋米,够不够?」你听见她翻记事本的声音。";
+      else msg="你妈压低声音:「妈背着你爸又囤了十斤腊肉,你妹妹单位我也让她请好假了。儿子,妈信你。」你的眼眶忽然有点热。";
+      scene("家",msg+"\n\n家人信任 +8","",{t:"继续",fn:function(){randomEventThen("home");}});
+    }});
+  }
+  choices.push({t:"好好休息",sub:"疲劳 -45",fn:function(){
+    S.fatigue=clamp(S.fatigue-45,0,100);
+    var dream=[
+      "你梦见了前世:冰冷的出租屋,你裹着所有衣服还是抖,手里的调料包被舔得发白。",
+      "你梦见了前世的邻居,隔着墙敲了三天,第四天就再没声音了。",
+      "无梦。这七天里,只有这一觉睡得像个人。"
+    ];
+    scene("家",dream[Math.floor(Math.random()*3)]+"\n\n疲劳 -45","",{t:"继续",fn:function(){nextSlot();}});
+  }});
+  scene("家",desc,choices);
+}
+
+function bankScene(){
+  var choices=[];
+  var wdNote=["可全额取出","可全额取出","可全额取出","单日限取 ¥10,000","单日限取 ¥10,000","挤兑,单日限取 ¥2,000","银行关门"][S.day-1];
+  if(S.day<=6&&S.bank>0){
+    var lim=[48000,48000,48000,10000,10000,2000][S.day-1];
+    var amt=Math.min(S.bank,lim);
+    choices.push({t:"取现 "+fmt(amt),sub:wdNote+(S.day>=6?" · 队伍排到了街上":""),fn:function(){
+      S.bank-=amt; S.money+=amt;
+      var extra="";
+      if(S.day<=3&&Math.random()<0.4)extra="\n\n柜员抬起眼皮:「先生,取这么多现金做什么用途?」\n「装修,买建材,要付现。」你面不改色。\n她盖了个章。钱是带体温的东西,现在它属于你了。";
+      scene("银行","柜台里传出点钞机的哗哗声。\n\n现金 "+fmt(amt)+" 已入账。卡内余额 "+fmt(S.bank)+extra,"",{t:"继续",fn:function(){randomEventThen("bank");}});
+    }});
+  }
+  if(S.day>=2&&S.day<=4&&!S.loanTaken){
+    choices.push({t:"申请网贷 ¥30,000",sub:"秒批 · 显眼度 +12 · 可能招来催收",fn:function(){
+      S.loanTaken=true; S.money+=30000; S.expo=clamp(S.expo+12,0,100);
+      scene("银行","手机上点了几下,额度秒到。\n\n「反正……也没有以后了。」你盯着到账短信,心里说不出是什么滋味。\n\n现金 +¥30,000,显眼度 +12","",{t:"继续",fn:function(){randomEventThen("bank");}});
+    }});
+  }
+  if(S.day<=3&&S.hasCar){
+    choices.push({t:"卖掉二手车",sub:"车行报价 ¥42,000 · 失去大宗采购加成(装载量 -25%)",fn:function(){
+      S.hasCar=false; S.money+=42000;
+      scene("二手车行","车行老板绕着你那台老捷达转了一圈,报了个让你牙疼的数。\n\n「成。」你没还价。他愣了一下,大概没见过这么爽快的。\n\n现金 +¥42,000。从今天起,买大件只能靠搬了。","",{t:"继续",fn:function(){randomEventThen("bank");}});
+    }});
+  }
+  choices.push({t:"离开",fn:function(){nextSlot();}});
+  scene("银行 / 二手车行","银行大厅里,今天还算安静。ATM 机前排着两三个人。\n\n你知道,再过几天,这里的玻璃门会被挤碎。\n\n卡内余额:"+fmt(S.bank)+(S.day>=6&&S.bank>0?"\n\n——但今天,银行自身难保。":""),choices);
+}
+
+var RANDOM_EVENTS=[
+  {cond:function(l){return l==="market"&&S.day>=2;},fn:function(){
+    scene("插曲 · 超市","结账时,旁边一个大妈盯着你购物车里的二十袋盐,眼睛越睁越大:\n\n「小伙子……你家是开饭店的?」\n\n周围几道目光唰地聚过来。",[
+      {t:"笑笑:「对,开小饭馆。」",fn:function(){S.expo=clamp(S.expo+2,0,100); nextSlot2("你打过哈哈,但大妈已经开始跟旁边人咬耳朵了。\n\n显眼度 +2");}},
+      {t:"面无表情:「家里人多。」推车就走",fn:function(){nextSlot2("你推着车快步离开。身后是压低却压不住的议论声。\n\n显眼度 +3");S.expo=clamp(S.expo+3,0,100);}}
+    ]);
+  }},
+  {cond:function(l){return l==="market";},fn:function(){
+    scene("插曲 · 收银台","收银的小姑娘扫码时,忽然飞快地往你袋子里多塞了两瓶水,压低声音:\n\n「哥,我姐在气象局……你们多囤点,真的。」\n\n她移开视线,像什么都没发生。",[
+      {t:"轻声说:「谢谢,你也是。」",fn:function(){S.karma+=8; S.res.water+=2; nextSlot2("她眼圈红了一下。\n\n人心 +8,饮水 +2天");}},
+      {t:"点点头,不多说",fn:function(){S.res.water+=2; nextSlot2("饮水 +2天");}}
+    ]);
+  }},
+  {cond:function(l){return l==="wholesale";},fn:function(){
+    scene("插曲 · 批发市场","一个穿军绿棉袄的中年男人和你并排装货,忽然开口:\n\n「明天米价还要涨,物流先断了。」他看着前方,「我一个老乡在高速上,说北边的服务区全满了,都是往南跑的车。」\n\n他说完就拖着自己那车货走了,像从没出现过。",[
+      {t:"默默记下",fn:function(){S.flags.metClear=true; nextSlot2("清醒的人,都在沉默地做准备。\n\n(情报:明日物价再涨,物流将断)");}}
+    ]);
+  }},
+  {cond:function(l){return (l==="market"||l==="wholesale")&&S.day>=3;},fn:function(){
+    scene("插曲 · 特价区","仓库门口贴着手写告示:临期食品,半价处理。\n\n整托盘的临期方便面和饼干,生产日期还剩两三个月——对七天后的世界来说,这根本不算事。",[
+      {t:"扫货 (¥450)",sub:"食物 +6天",disabled:S.money<450,fn:function(){S.money-=450; var l=gainRes({food:6}); S.expo=clamp(S.expo+3,0,100); nextSlot2("半价!\n\n"+l.join(" · "));}},
+      {t:"算了,不缺这点",fn:function(){nextSlot2("你绕开了特价区。");}}
+    ]);
+  }},
+  {cond:function(l){return l==="gas"&&S.day>=4;},fn:function(){
+    scene("插曲 · 加油站","排在前面的大货车司机和加油员吵了起来,喇叭声此起彼伏。\n\n有人加塞,你后面的车火气越来越大。眼看就要动手。",[
+      {t:"下车帮忙劝架",sub:"疲劳 +8,人心 +6",fn:function(){S.karma+=6; S.fatigue=clamp(S.fatigue+8,0,100); nextSlot2("你把两个人拉开,给货车司机递了根烟。他嘟囔着:「都疯了,都疯了……」\n\n人心 +6");}},
+      {t:"锁门,等他们吵完",sub:"疲劳 +5",fn:function(){S.fatigue=clamp(S.fatigue+5,0,100); nextSlot2("二十分钟后,队伍终于又动了。\n\n疲劳 +5");}}
+    ]);
+  }},
+  {cond:function(l){return l==="bank";},fn:function(){
+    scene("插曲 · 银行门口","出门时,一个穿制服的年轻保安拦住你,欲言又止:\n\n「哥,听我一句,取了现金别放家里,存点……」他左右看看,「算了,当我没说。」\n\n他的眼神里有种奇特的歉意。",[
+      {t:"「谢谢。」",fn:function(){nextSlot2("你握了握手里的现金。谢谢,但钱只有在变成物资的那一刻才是命。");}}
+    ]);
+  }},
+  {cond:function(){return S.day>=4&&S.day<=6;},fn:function(){
+    scene("插曲 · 街头","路边有个倒爷支着小马扎,面前摆着几箱盐,纸板上写着「末日价」。\n\n一小箱盐,他喊价一千五。有人骂他发国难财,也有人在掏钱。",[
+      {t:"买了 (¥1,500)",sub:"硬通货 +10 · 显眼度 +3",disabled:S.money<1500,fn:function(){S.money-=1500; gainRes({barter:10}); S.expo=clamp(S.expo+3,0,100); nextSlot2("贵得离谱。但你知道,七天后,这一箱盐能换一条命。\n\n硬通货 +10");}},
+      {t:"无视,走开",fn:function(){nextSlot2("你面无表情地走过。别露财,别停留。");}},
+      {t:"低声提醒围观的人别买",sub:"人心 +3",fn:function(){S.karma+=3; nextSlot2("有人愣了愣,把掏出来的钱又揣了回去。倒爷恶狠狠地瞪你。\n\n人心 +3");}}
+    ]);
+  }},
+  {cond:function(){return S.day>=5&&S.slot>=2&&S.res.food>0;},fn:function(){
+    scene("插曲 · 楼下","楼下超市门口,经理拦住抱着最后一批罐头的你,一脸难堪:\n\n「兄弟,行行好,有个孕妇,三天没抢到吃的了……就两罐。」\n\n他指着角落。一个女人扶着腰,避开所有人的目光。",[
+      {t:"分她两罐",sub:"食物 -2,人心 +10",fn:function(){S.res.food=Math.max(0,S.res.food-2); S.karma+=10; nextSlot2("她接过罐头,手一直在抖,一个劲儿鞠躬。经理朝你深深作了个揖。\n\n你想起前世那个把半块饼分给你的老头。\n\n人心 +10");}},
+      {t:"「我自己也不够。」摇头走人",fn:function(){S.karma-=3; nextSlot2("你快步上楼,没敢回头。\n\n前世你也是这么活下来的——活到了第七十三天。\n\n人心 -3");}}
+    ]);
+  }},
+  {cond:function(){return S.slot===3&&S.defense<25&&resSum()>60&&!S.dog;},fn:function(){
+    scene("插曲 · 深夜","凌晨,你被客厅一声闷响惊醒。\n\n有人撬阳台的窗。金属摩擦声,一下,又一下。\n\n你抄起手电猛地照过去,黑影骂了一句,跳下楼逃了。早上清点,门口放的两箱矿泉水不见了。\n\n(饮水 -3)",[
+      {t:"……",fn:function(){S.res.water=Math.max(0,S.res.water-3); nextSlot2("光脚的不怕穿鞋的,饿疯的怕谁?\n\n这个冬天,才刚刚开始。");}}
+    ]);
+  }},
+  {cond:function(){return S.slot===3&&S.dog;},fn:function(){
+    scene("插曲 · 深夜","煤球忽然从窝里弹起来,冲着门低吼,背毛全竖。\n\n你握着钢管在门后站了十分钟。楼道里的脚步声徘徊一阵,远了。\n\n煤球得了一根火腿肠的嘉奖。",[
+      {t:"摸摸它的头",fn:function(){S.defense=clamp(S.defense+2,0,100); nextSlot2("狗比人可靠。防御 +2");}}
+    ]);
+  }},
+  {cond:function(){return S.day>=5;},fn:function(){
+    scene("插曲 · 小区","小区凉亭里,几个老人在晒太阳聊天,声音不大,但字字钻进你耳朵:\n\n「五号楼那个小伙,前几天货车一趟一趟往家拉货,吓人哦。」\n「年轻人意识先进嘛,哈哈。」\n「要真有什么事,咱们得知道去谁家……」\n\n一片心照不宣的笑声。",[
+      {t:"低头快步走过",fn:function(){S.expo=clamp(S.expo+4,0,100); nextSlot2("后颈一阵发凉。\n\n显眼度 +4");}},
+      {t:"凑过去聊两句天气",sub:"装傻,显眼度 -4",fn:function(){S.expo=clamp(S.expo-4,0,100); nextSlot2("你聊了会儿「这鬼天气」,顺手帮张大爷把白菜搬上楼。\n\n显眼度 -4");}}
+    ]);
+  }},
+  {cond:function(){return S.lentZhang&&S.day>=6&&!S.allyZhang;},fn:function(){
+    scene("插曲 · 张伟","张伟的电话打过来,背景很嘈杂:\n\n「兄弟,钱我转你了!还有……你上次说的,我认真想了。」他喘着气,「我信你。我囤了三千多块的东西,我跟我媳妇说好了,真出事,我们能搭把手不?」",[
+      {t:"「能。到时候听我信号。」",fn:function(){S.allyZhang=true; S.karma+=5; S.defense=clamp(S.defense+8,0,100); nextSlot2("多一个靠谱的人,就多一双守夜的眼睛。\n\n防御 +8,人心 +5");}},
+      {t:"「你疯了,我随口说的。」",fn:function(){S.karma-=3; nextSlot2("电话那头沉默了几秒:「……行吧,兄弟,保重。」\n\n挂了电话,你说不清是遗憾还是庆幸。\n\n人心 -3");}}
+    ]);
+  }},
+  {cond:function(){return S.trust>=50&&S.day>=5&&!S.flags.sisMoney;},fn:function(){
+    scene("插曲 · 妹妹","妹妹突然转来 ¥2,000,附言只有一句话:\n\n「哥,我不知道你听没听说什么,但我信你。这是我全部的私房钱,帮我带点吃的。」",[
+      {t:"收下,记在心里",fn:function(){S.money+=2000; S.trust=clamp(S.trust+8,0,100); S.flags.sisMoney=true; nextSlot2("你捏着手机,半天没打出一个字。\n\n最后只回了两个字:「等你。」\n\n家人信任 +8");}}
+    ]);
+  }},
+  {cond:function(){return S.day>=3;},fn:function(){
+    scene("插曲 · 闪回","搬货的间隙,前世的画面毫无预兆地涌上来——\n\n零下四十度的第七天,你敲开对门的门,用一块金表换半袋米。开门的男人看了看表,又看了看你身后的空手,摇了摇头,关上了门。\n\n你记得那扇门合上时,门缝里透出的、炉火的光。",[
+      {t:"回过神来,继续干活",fn:function(){
+        var r=S.res; var lack=[];
+        if(r.water<15)lack.push("饮水"); if(r.warmth<15)lack.push("保暖"); if(r.fuel<12)lack.push("燃料"); if(r.meds<8)lack.push("药品");
+        nextSlot2(lack.length?("你冷静地在清单上圈出最薄弱的几项:"+lack.join("、")+"。"):"你清点了一遍物资,暂时没有明显短板。保持警惕。");
+      }}
+    ]);
+  }},
+  {cond:function(){return S.day>=4&&S.day<=6;},fn:function(){
+    scene("插曲 · 城市异象","回来的路上,你看见成千上万的鸟掠过天空,方向乱得反常,像一团黑风暴。\n\n公园的湖面上,野鸭挤作一团不肯下水。遛狗的人被拽得踉跄——所有的狗,都朝着同一个方向狂吠。",[
+      {t:"裹紧衣服,快步回家",fn:function(){nextSlot2("动物比人诚实。\n\n倒计时:"+Math.max(0,8-S.day)+" 天。");}}
+    ]);
+  }},
+  {cond:function(){return S.slot===0&&S.day>=3&&S.day<=6;},fn:function(){
+    scene("插曲 · 微信群","家族群里,二姨转了一篇《寒潮将至?辟谣!》,配了三个微笑表情。\n\n三分钟后,表哥转了《惊人内幕:西伯利亚冰盖异动》。两篇文章在同一块屏幕里打架。\n\n你妈在群里小心翼翼@你:「儿子你说,该信哪个?」",[
+      {t:"私聊告诉她:信后面那个",fn:function(){S.trust=clamp(S.trust+5,0,100); nextSlot2("你打了很长一段话,删了,又打,最后只发了一句:「妈,我这周回家看你。」\n\n家人信任 +5");}},
+      {t:"在群里扔下一句「多囤点吃的」",sub:"显眼度 +5",fn:function(){S.expo=clamp(S.expo+5,0,100); S.trust=clamp(S.trust+3,0,100); nextSlot2("群里安静了一分钟,然后二姨回了个「哈哈,吓唬谁呢」。\n\n但你知道,至少有两个人默默记下了。\n\n显眼度 +5,家人信任 +3");}}
+    ]);
+  }}
+];
+function nextSlot2(extra){ scene("",extra||"",[{t:"继续",fn:function(){nextSlot();}}]); }
+
+function storyBeat(){
+  var key=S.day+"-"+S.slot;
+  var beats={};
+  beats["1-0"]=function(){
+    scene("第一天 · 早晨","2027年11月12日,早晨6:47。\n\n你在自己的床上睁开眼,天花板,吊灯,墙上的挂历——都对了。手机日期跳出来的一瞬间,你的手指在抖。\n\n距离11月19日「长夜」降临,还有整整七天。\n\n前世,你死在末世第23天。死前的最后记忆,是出租屋里结了冰碴的水杯,和你妈打来却再没人接的电话。\n\n这一世,你有存款,有车,有手有脚,还有——七天的倒计时。\n\n现金 ¥3,563,银行卡 ¥48,000。这是你全部的本钱。",[
+      {t:"先冷静,列一张囤货清单",sub:"【生存三要素:保暖、食物、燃料】其次:水、药品、器械、硬通货",fn:function(){
+        scene("第一天 · 清单","你在纸上写下前世用命换来的经验:\n\n一、冻死的人,比饿死的多。保暖和燃料优先。\n二、水比食物致命,断水三天人就垮。\n三、盐、糖、烟、酒,末世的硬通货,能换命。\n四、显眼=死。别让任何人知道你家有什么。\n五、物价一天一个样,越早买越划算,钱花出去才是钱。\n\n纸写满了。你把它折好,贴身放进内袋。\n\n(每天4个时段可行动;物资会涨价、断货;注意仓储上限与显眼度)",[
+          {t:"出门,开始行动",fn:function(){showMap();}}
+        ]);
+      }},
+      {t:"没时间废话,直接出门扫货",fn:function(){showMap();}}
+    ]);
+  };
+  beats["1-1"]=function(){
+    scene("第一天 · 上午","手机疯狂震动,部门群里老板@了所有人:\n\n「季度冲刺,本周六天全员到岗!不来按旷工处理!」\n\n你盯着这条消息看了十秒,笑了。\n\n一个星期后,这家公司连电费都交不起。",[
+      {t:"请年假 (扣 ¥3,000 绩效)",fn:function(){S.money-=3000; nextSlot2("假条秒批。人事小姐姐留言「注意安全哦」,大概只是随口一说。\n\n¥3,000 买七天自由,值。");}},
+      {t:"直接无视,转头去采购",fn:function(){S.flags.awol=true; S.karma-=2; nextSlot2("爱扣就扣吧。\n\n下周一,这里连打卡机都会冻住。\n\n人心 -2");}}
+    ]);
+  };
+  beats["1-3"]=function(){
+    scene("第一天 · 夜晚","晚上,你妈的电话准时打来,和前世一模一样。\n\n「吃饭没?又点外卖吧?妈跟你说……」唠叨了五分钟,挂之前,她忽然放轻声音:「儿子,最近……没啥事吧?听你喘气不对。」\n\n你喉头一哽。前世,你在末世第23天没能接到她最后一个电话。",[
+      {t:"旁敲侧击:「妈,家里囤点米面」",fn:function(){S.trust+=5; nextSlot2("「囤啥囤,粮店就在楼下。」她笑了,「你有这心思先把自己喂饱。」\n\n种子种下了。家人信任 +5");}},
+      {t:"说出真相",sub:"她多半不信",fn:function(){S.trust+=8; S.toldMom=true; nextSlot2("你深吸一口气,一字一句:「妈,11月19号,会有一场永远不会停的暴雪。你和我爸,多囤吃的,囤煤,别出门。」\n\n电话那头沉默了很久:「……儿子,你压力是不是太大了?」\n\n但她记住了那个日期。家人信任 +8");}},
+      {t:"只说想她了",fn:function(){S.trust+=3; nextSlot2("「傻孩子。」她笑着骂你,「想妈就回来吃饭。」\n\n挂了电话,你在黑暗里坐了很久。\n\n家人信任 +3");}}
+    ]);
+  };
+  beats["2-0"]=function(){
+    scene("第二天 · 早晨","洗漱时,一组数字突然从记忆深处浮出来,清晰得像刻在玻璃上——\n\n11月12日,晚9点15分开奖。双色球。前世的头奖号码,你生前死后都在新闻里看了无数遍。\n\n一等奖,单注奖金 ¥38,462。\n\n你攥着牙刷的手,微微发抖。",[
+      {t:"去彩票站,买! (¥1,000,本次时段)",sub:"重生者的第一桶金",fn:function(){S.money-=1000; S.lottery="bought";
+        scene("彩票站","你写下了那串数字,两注,倍投。店主打着哈欠撕票。\n\n晚上9点15分,开奖号码逐个跳出——\n\n全中。\n\n到账短信:¥38,462。你盯着屏幕,在出租屋里无声地笑,笑着笑着,眼睛湿了。\n\n前世你连注彩票都没舍得买过。\n\n现金 +¥38,462",[{t:"深呼吸,继续",fn:function(){S.money+=38462; S.lottery="won"; nextSlot();}}]);
+      }},
+      {t:"算了,记得不准,别浪费时间",fn:function(){nextSlot2("你摇摇头,把数字从脑子里赶出去。\n\n万一记错一位,一千块就打了水漂。\n\n——真的只是因为怕记错吗?");}}
+    ]);
+  };
+  beats["2-2"]=function(){
+    scene("第二天 · 下午","同事张伟的电话打过来,声音窘迫:\n\n「兄弟,应急一下,孩子住院押金差五千……发了工资马上还你。就当哥求你了。」\n\n前世的这个时候,你兜里只有两千块,只能装没看见。后来末世里再遇到他,是在避难点,他把自己最后半包烟分给了你。",[
+      {t:"转给他 ¥5,000",sub:"人心 +10,也许有回响",disabled:S.money<5000,fn:function(){S.money-=5000; S.lentZhang=true; S.karma+=10; nextSlot2("「兄弟!我——」\n「别说废话,照顾好孩子。」你挂了电话。\n\n这世上值得救的人,你一只手数得过来。他是其中一个。\n\n人心 +10");}},
+      {t:"转给他 ¥500,聊表心意",fn:function(){S.money-=500; S.karma+=3; nextSlot2("「够了够了,太谢谢了!」\n\n你有点惭愧,但你的每一分钱,现在都是命。\n\n人心 +3");}},
+      {t:"挂断",fn:function(){S.karma-=5; nextSlot2("「对不起,兄弟。」你按掉电话,胸口发闷。\n\n前世你救不了任何人。这一世,你先得救自己。\n\n人心 -5");}}
+    ]);
+  };
+  beats["3-0"]=function(){
+    scene("第三天 · 早晨","早间新闻终于换了口风:\n\n「强寒潮预警!预计本周内气温断崖式下跌,请市民做好防寒准备——」\n\n超市门口,第一次出现了推着两辆购物车的人。货架上的方便面,空了整整一排。\n\n你混在人群里,像个普通人一样,只往车里拿自己「够用」的量。\n\n(今日物价约 ×1.4,仍在加速上涨)",[
+      {t:"加快节奏",fn:function(){showMap();}}
+    ]);
+  };
+  beats["3-1"]=function(){
+    scene("第三天 · 上午","表哥的电话,背景音嘈杂:\n\n「兄弟!你消息灵通,跟哥说实话——网上说的那个寒潮,真的假的?」\n\n没等你回答,他话锋一转:「哥最近看中一套房,首付还差两万,你手头宽裕的话……」\n\n前世的末世第三十天,你表哥一家堵在你老家的门口,而你妈,把家里最后的半袋米从后窗递了出去。",[
+      {t:"借他 ¥20,000",sub:"家人信任 +10",disabled:S.money<20000,fn:function(){S.money-=20000; S.trust+=10; nextSlot2("「好兄弟!过年哥给你带两瓶好酒!」他欢天喜地挂了电话。\n\n这钱大概率是打水漂了。但至少,姑姑一家会记得你的好,也许会看在你妈的份上……\n\n家人信任 +10");}},
+      {t:"「我也在凑首付,没钱。」",fn:function(){S.trust-=3; nextSlot2("他「哦」了一声,挂得干脆。\n\n七天后,他看你的眼神会不一样。但那时候,谁的眼神又还重要呢。\n\n家人信任 -3");}},
+      {t:"「表哥,别买房了,囤粮。」",sub:"说出部分真相",fn:function(){S.trust+=4; nextSlot2("电话那头愣了半天:「兄弟,你是不是被什么组织洗脑了……」\n\n但他没再提借钱的事。\n\n家人信任 +4");}}
+    ]);
+  };
+  beats["3-3"]=function(){
+    scene("第三天 · 夜晚","下楼倒垃圾,一只黑黄相间的流浪狗从垃圾桶后面探出头,瘦得肋骨分明,却冲你摇了摇尾巴。\n\n它的碗里只有烟头。宠物医院旁边流浪狗很多——主人跑得比谁都快。\n\n你想起前世,楼里那只冻死在单元门口的金毛,到死都在等主人回来。",[
+      {t:"上楼拿了根火腿肠",sub:"收养它,防御 +8",fn:function(){S.dog=true; S.defense+=8; S.karma+=5; nextSlot2("它三口吞完,然后亦步亦趋跟着你上楼,在门口趴下了,像已经等了你很多年。\n\n你叫它煤球。\n\n末世里,一双警觉的耳朵,比一把锁值钱。\n\n防御 +8,人心 +5");}},
+      {t:"狠下心,转身回家",fn:function(){S.karma-=2; nextSlot2("它在你身后呜咽了一声。\n\n你加快脚步。你连自己都快保不住了。\n\n人心 -2");}}
+    ]);
+  };
+  beats["4-1"]=function(){
+    scene("第四天 · 上午","「笃笃笃。」\n\n门镜里是对门王婶,端着个碗。门开一条缝,她的目光越过你的肩膀,在客厅的纸箱山上黏了一秒。\n\n「借点酱油~哎哟,你家……搬家呀?这么多箱子!」\n\n她笑得热络,眼睛却像探照灯。前世的记忆涌上来——正是这位王婶,末世里带着儿子敲开了半层楼所有囤货人家的门。",[
+      {t:"正常借酱油,寒暄两句",sub:"显眼度 +4",fn:function(){S.karma+=3; S.expo+=4; nextSlot2("你倒了酱油,站在门口聊了三分钟天气,自始至终没让她再往里看一眼。\n\n但「你家好多箱子」这句话,今晚就会出现在楼下凉亭。\n\n显眼度 +4");}},
+      {t:"「家里没酱油了。」",sub:"显眼度 -3",fn:function(){S.expo=clamp(S.expo-3,0,100); S.neighbor-=5; nextSlot2("她脸上的笑僵了一瞬:「哦……那,那算了。」\n\n门关上。邻里 -5,显眼度 -3");}},
+      {t:"塞给她一袋盐+两斤糖",sub:"邻里 +15,显眼度 +5",disabled:S.res.barter<5,fn:function(){S.res.barter-=5; S.neighbor+=15; S.karma+=5; S.expo+=5; nextSlot2("「哎哟这怎么好意思!」她眉开眼笑,临走压低声音,「小伙子,婶跟你说,楼下那几个老的嘀咕你家呢,婶帮你岔开了啊。」\n\n收买人心,有时比藏货更管用。\n\n邻里 +15,硬通货 -5");}}
+    ]);
+  };
+  beats["4-2"]=function(){
+    scene("第四天 · 下午","天文爱好者论坛炸了锅——正午的太阳光谱出现了无法解释的偏移。\n\n官方很快删帖。但下午四点,天就开始黑了,黑得不讲道理。云层是一种从未见过的、铁灰里透着暗紫的颜色。\n\n你妈发来一段小视频:老家院子里,成群的麻雀撞在墙上。\n\n「儿子,」她第一次主动问,「你上回说的那个……到底,还有几天?」",[
+      {t:"「五天。囤水,囤煤,别出门。」",fn:function(){S.trust+=10; nextSlot2("这一次,她没有反驳,只回了两个字:\n\n「好的。」\n\n你看着这两个字,鼻子发酸。\n\n家人信任 +10");}},
+      {t:"「快了,听我的没错。」",fn:function(){S.trust+=5; nextSlot2("「好,妈这就去让你爸买煤。」\n\n半信半疑,但已经开始行动。\n\n家人信任 +5");}}
+    ]);
+  };
+  beats["5-0"]=function(){
+    scene("第五天 · 早晨","一夜之间,城市变了。\n\n超市卷帘门只开一半,门口拉着警戒线,警察拿着喇叭喊:「一人限购两件!排队!」\n\n有人抱着整箱矿泉水从人缝里挤出来,头发凌乱,眼里全是血丝。货架空得像被蝗虫过境。\n\n新闻里在说「理性囤货」,但主播自己的桌上,摆着一瓶矿泉水。\n\n(今日物价约 ×2.6,商超限购:每店每次限买1件;黑市已在夜间开张)",[
+      {t:"进入混乱的一天",fn:function(){showMap();}}
+    ]);
+  };
+  beats["5-1"]=function(){
+    if(S.trust>=40){
+      scene("第五天 · 上午","妹妹的微信轰炸过来,一连串语音,声音发抖:\n\n「哥!公司让签什么『自愿留岗书』,我同事说高速全堵死了……我半夜刷手机,越刷越怕。你上个月说的那些话,是不是真的?」\n\n「哥,我现在,信你。」",[
+        {t:"「别上班了,来我这,带上爸妈。」",sub:"家人来投(消耗更多物资,但全家团聚)",fn:function(){S.sisterInvited=true; S.trust+=15; nextSlot2("「好!我这就去请假,去接爸妈!」\n\n她那边手忙脚乱,你这边心乱如麻——四张嘴,你的粮够吗?\n\n但前世的遗憾,这次你想亲手改掉。\n\n家人信任 +15");}},
+        {t:"转她 ¥5,000,让她就地囤货守着爸妈",sub:"家人信任 +12",disabled:S.money<5000,fn:function(){S.money-=5000; S.trust+=12; nextSlot2("「收到!哥你放心,我看着办!」半小时后她发来照片:满满一后备箱的米面粮油,还有两桶柴油——她连柴油都想到了。\n\n这丫头,是块末世生存的料。\n\n家人信任 +12");}},
+        {t:"「别自己吓自己,好好上班。」",fn:function(){S.trust-=10; nextSlot2("「……哦。」\n\n这个「哦」字,让你心里咯噔一下。\n\n家人信任 -10");}}
+      ]);
+    } else {
+      scene("第五天 · 上午","家族群里,妹妹转了辟谣帖:「又造谣!已举报」。\n\n你点开她头像看了很久,最终什么也没发。\n\n信任不是一天建成的,但灾难只给你七天。",[
+        {t:"继续行动",fn:function(){showMap();}}
+      ]);
+    }
+  };
+  beats["5-3"]=function(){
+    if(!S.chen){
+      scene("第五天 · 夜晚","楼道里烟雾缭绕。三楼的老陈蹲在台阶上抽烟,脚边放着一个军绿色帆布包。\n\n他是退伍兵,一个人住,平时谁也不理。此刻他盯着手机,屏幕上是北方高速大堵车的航拍图。\n\n他抬头看见你,目光在你拎的编织袋上停了一秒,又移开。",[
+        {t:"递上一瓶白酒",sub:"硬通货 -5,试图结盟",disabled:S.res.barter<5,fn:function(){S.res.barter-=5; S.chen=true; S.defense+=25; nextSlot2("他接过酒,没说谢,拧开闻了闻:「粮食酒,行家。」\n\n沉默半晌,他忽然说:「我观察你三天了。你囤东西,很懂。」\n\n「真到那天,」他弹了弹烟灰,「这个楼,我守。」\n\n退伍侦察兵,一杆顶五人。\n\n防御 +25,获得盟友:老陈");}},
+        {t:"点点头,各走各的",fn:function(){nextSlot2("你们像两个平行世界的幸存者,擦肩而过。\n\n也许以后会有交集。也许不会。");}}
+      ]);
+    } else nextSlot2("老陈在楼道里擦拭一支来历不明的弩,朝你抬了抬下巴。");
+  };
+  beats["6-0"]=function(){
+    scene("第六天 · 早晨","银行门口的队伍拐了三个弯。有人抱着被子排队,有人吵架,警察在人群外围抽烟。\n\n电子屏滚动:临时限提,每人每日 ¥2,000。\n\n物流全停。外卖平台全灰。菜市场的摊主把最后几捆青菜挂出了十倍价,一小时后,菜市场和价格一起消失了。\n\n城市,正在露出它的骨架。",[
+      {t:"面对现实",fn:function(){showMap();}}
+    ]);
+  };
+  beats["6-1"]=function(){
+    if(S.loanTaken){
+      scene("第六天 · 上午","「砰砰砰!」\n\n三个纹身男人堵在你家门口,为首的晃着手机:「哥们儿,网贷到期了,利息滚一滚,连本带利五万整。」\n\n他往你屋里瞟:「哟,不少货啊。末日求生?有病吧?」他咧嘴笑,「没钱就拿货抵。」",[
+        {t:"破财消灾 (¥5,000)",sub:"显眼度 +5",disabled:S.money<5000,fn:function(){S.money-=5000; S.expo+=5; nextSlot2("他们点了钱,临走顺手顺走了一箱罐头。\n\n破财消灾。但他们知道你家有货了。\n\n显眼度 +5");}},
+        {t:"让老陈出面",sub:"需要盟友:老陈",disabled:!S.chen,fn:function(){nextSlot2("老陈拎着一把工兵铲下楼,跟为首的聊了四十秒。\n\n三个人脸色由红转白,倒退着离开,连楼道口的烟头都捡走了。\n\n盟友的价值,此刻体现。");}},
+        {t:"「末世要来了,钱就是纸。」硬扛",sub:"显眼度 +12",fn:function(){S.expo+=12; nextSlot2("「疯子!」他们骂骂咧咧地走了,临走踹了你家大门一脚。\n\n但你看得到他们眼里的贪婪——他们记住你家了。\n\n显眼度 +12");}}
+      ]);
+    } else if(S.expo>=40){
+      scene("第六天 · 上午","回家的路上,你察觉到了:两个戴鸭舌帽的男人,已经跟了你两条街。\n\n他们走得很闲,但每个路口的转弯都和你一致。前世的直觉瞬间回来了——被盯上了。",[
+        {t:"绕路,钻进人多的小区甩掉他们",sub:"疲劳 +10",fn:function(){S.fatigue+=10; S.expo=clamp(S.expo-5,0,100); nextSlot2("你借着买菜人群绕了三个小区,从另一条街的后门回家,反锁,靠在门上大口喘气。\n\n甩掉了。但他们的脸,你记下了,他们的眼里没有善意。\n\n疲劳 +10");}},
+        {t:"正面走向他们",sub:"器械≥8 可以立威",disabled:S.res.tools<8,fn:function(){S.karma+=3; S.expo=clamp(S.expo-8,0,100); nextSlot2("你在他们面前三米处站定,从袋里缓缓抽出一根包了胶皮的钢管,在掌心敲了敲。\n\n「找谁?」\n\n两人对视一眼,散了。\n\n横的怕愣的。显眼度 -8");}},
+        {t:"报警",sub:"浪费整个时段",fn:function(){nextSlot2("做了笔录,警察让你「最近少出门」。\n\n一整个上午没了。但至少,派出所记住了你的住址——这未必是坏事。");}}
+      ]);
+    } else scene2Map("第六天 · 上午","街上的人明显少了。有店铺开始用木板封窗,动作熟练得让人心慌。仿佛所有人都在同一晚做了同一个梦。");
+  };
+  beats["6-3"]=function(){
+    if(S.sisterInvited){
+      scene("第六天 · 夜晚","晚上十点,门铃响了。\n\n门镜里,妹妹拖着两个行李箱,搀着你妈;你爸背着编织袋,里面插着一把铁锹——是他硬要带的。\n\n「哥。」妹妹眼眶通红,「高速封了,我们绕了八个小时。」\n\n你妈进门,第一眼看到客厅的纸箱山,愣了很久,忽然转身抱住你:\n\n「儿子,你受苦了……一个人扛这些,多久了?」",[
+        {t:"「妈,到家了。」",sub:"家人来投:妈妈带来腌肉腊肉(食物+5),人多消耗更快,但家里有了帮手",fn:function(){S.familyFlag=true; S.res.food+=5; S.defense+=10; S.trust=clamp(S.trust+10,0,100); nextSlot2("那一夜,家里四口人加一条狗,谁都没睡。\n\n你把末世的规则一条条讲给他们听。你爸默默把铁锹靠在了门后,你妈开始清点物资,妹妹给所有矿泉水瓶写了编号。\n\n家,比物资更早一步,重建了。\n\n食物 +5,防御 +10");}},
+        {t:"躲在屋里不开门,关机",sub:"家人信任 -30",fn:function(){S.trust=clamp(S.trust-30,0,100); S.flags.rejected=true; nextSlot2("门铃响到十一点,停了。\n\n你在门后站了一夜,手里攥着清货单,一个字都看不进去。\n\n第二天清早,他们在楼下宾馆住了一晚,回去了。\n\n你保住了物资,弄丢了别的什么。\n\n家人信任 -30");}}
+      ]);
+    } else scene2Map("第六天 · 夜晚","你一个人吃着压缩饼干就热水,手机里是家人群的红点。窗外远处,有隐隐的警笛声,响一夜,停了。");
+  };
+  beats["7-0"]=function(){
+    scene("第七天 · 早晨","天没有亮。\n\n上午九点,天空是一种熔化的铁水色,气温零下十六度——这还只是开始。鸟群已经绝迹,城市的上空安静得像深海。\n\n新闻只剩一条滚动字幕:红色预警,请居民勿外出,储备生活物资。\n\n你的手机弹出气象推送,然后——信号没了。永远地没了。\n\n这是最后一天。入夜之前,一切都将冻结。",[
+      {t:"最后的准备",fn:function(){showMap();}}
+    ]);
+  };
+  beats["7-1"]=function(){
+    if(S.expo>=55){
+      scene("第七天 · 上午","「咚咚咚。」\n\n居委会刘主任带着两个志愿者站在门口,笑容标准:\n\n「小伙子,接到群众反映,说你家……囤积了大量物资?咱们登个记,真有困难可以协调嘛。」\n\n她的目光越过你,在纸箱山上打转。身后的志愿者拿着登记本。",[
+        {t:"赔笑撒谎:「做电商的,都是发货存货」",sub:"有概率过关",fn:function(){
+          if(Math.random()<0.6){S.expo=clamp(S.expo-10,0,100); nextSlot2("她将信将疑地看了你营业执照照片(你连夜P的),在本子上划掉了你的门牌号。\n\n「做电商辛苦,注意消防安全。」\n\n有惊无险。显眼度 -10");}
+          else {S.expo+=8; var l=Math.floor(resSum()*0.08); takeRes(l); nextSlot2("她坚持「登个记」,顺手拍了照。当晚,小区群流传起你家照片:「这户囤货可够全楼吃一年~」\n\n显眼度 +8,部分位置暴露。");}
+        }},
+        {t:"塞红包 (¥2,000)",disabled:S.money<2000,fn:function(){S.money-=2000; S.expo=clamp(S.expo-15,0,100); nextSlot2("她捏了捏信封厚度,笑容真诚了一档:「哎呀,误会误会,群众反映的原来是电商仓啊。」\n\n¥2,000,买回一个匿名。\n\n显眼度 -15");}},
+        {t:"「我在家囤什么,违法吗?」硬刚",sub:"显眼度 +10",fn:function(){S.expo+=10; S.karma+=2; nextSlot2("你当着她的面关了门。\n\n硬刚一时爽。但那张登记表上,你家被画了三个圈。\n\n显眼度 +10");}}
+      ]);
+    } else scene2Map("第七天 · 上午","天空暗得像倒扣的铁锅。你最后检查了一遍门窗、水管(放空了存水)和物资清单。\n\n小区里死一般安静。家家户户门缝里,透着最后的灯光。");
+  };
+  beats["7-2"]=function(){
+    if(!S.familyFlag){
+      if(S.trust>=55){
+        scene("第七天 · 下午","你妈打来最后一个电话,声音很稳:\n\n「儿子,妈信你。你爸把煤搬进了屋,水缸接满了,你妹妹囤的东西够吃俩月。」\n\n她顿了顿:「妈只有一句话——活着。不管多难,活着,妈等你回家。」\n\n电话挂断前,你听见你爸在旁边喊:「儿子!爸把你那间屋的窗户,也钉了板子!」",[
+          {t:"「妈,等雪停,我回家。」",fn:function(){S.trust=clamp(S.trust+10,0,100); nextSlot2("信号中断前的最后一个字,是她的「好」。\n\n这一次,你们都做了准备。\n\n家人信任 +10");}}
+        ]);
+      } else {
+        scene("第七天 · 下午","你妈的电话里全是担忧:\n\n「儿子,新闻说这么大,要不……你来老家?家里有暖气。」\n\n「妈,烧煤的锅炉,煤停了暖气就是冰。」你说。\n\n「那怎么办呀……」她的声音抖了。\n\n你握着手机,指节发白。该说的,这七天你都说了。信不信,只能看命。",[
+          {t:"「妈,把吃的集中在卧室,全家人睡一间,烧煤省一半。」",fn:function(){S.trust+=6; nextSlot2("「好,好,这就去搬。」\n\n你只能教到这儿了。剩下的,交给他们的命,和你寄回去的那些「年货」。\n\n家人信任 +6");}}
+        ]);
+      }
+    } else scene2Map("第七天 · 下午","全家人一起做最后的加固。你妈把腊肉一条条挂上阳台铁丝——「雪埋不住,冻不坏」,这是她那个年代的经验。\n\n妹妹在给煤球织毛衣。老陈送来两桶汽油,只说了一句:「晚上,都别脱衣服睡。」");
+  };
+  beats["7-3"]=function(){ finale(); };
+  if(beats[key]&&!S.beats[key]){S.beats[key]=1;return beats[key];}
+  return null;
+}
+function scene2Map(title,text){scene(title,text,[{t:"继续",fn:function(){showMap();}}]);}
+function takeRes(amount){
+  var names={food:"食物",water:"饮水",warmth:"保暖",fuel:"燃料",meds:"药品",hygiene:"卫生",tools:"器械",barter:"硬通货"};
+  var total=resSum(); if(total<=0)return;
+  var ratio=Math.min(0.9,amount/total);
+  for(var k in S.res){S.res[k]=Math.floor(S.res[k]*(1-ratio));}
+}
+
+function finale(){
+  scene("第七天 · 夜晚 · 21:47","灯,灭了。\n\n整栋楼、整条街、整座城市的灯光,像被人一口吹灭的蜡烛。\n\n黑暗里,只有雪声——不是「下雪」的声音,是雪压住整个世界的、绵密的沙沙声。\n\n温度计的数字在跳:零下19,零下24,零下29……",[
+    {t:"……",fn:function(){
+      scene("第七天 · 夜晚 · 23:58","窗外,路灯(备用电)下,暴雪横着飞,能见度不足五米。\n\n楼道里传来 第一声砸门声——不是砸你家的门,是楼上。然后是哭喊,然后是更密集的砸门声。\n\n你摸黑坐回床边"+(S.chen?",老陈在客厅守着前门,工兵铲横在膝上":"")+(S.dog?",煤球把头搁在你脚边,一声不吭":"")+(S.familyFlag?"。妈妈在里屋哄着妹妹,声音很轻,像哄小时候的你":"。")+"\n\n你最后看了一眼清单。\n\n该做的,这七天,都做了吗?",[
+        {t:"闭眼,等待黎明",fn:function(){startNight();}}
+      ]);
+    }}
+  ]);
+}
+
+var NIGHT_DAYS=[1,3,7,12,20,30,40,50,60];
+var NIGHT_TEMP={1:-41,3:-43,7:-45,12:-46,20:-49,30:-52,40:-51,50:-47,60:-28};
+
+function startNight(){
+  S.night={i:0,hunger:0,thirst:0,frost:0,sick:0,flags:{}};
+  scene("长夜 · 降临","第七天的午夜过去了。你没有死。\n\n这就已经赢了前世的你——但长夜,才刚刚开始。\n\n残存的广播说,这场雪至少还要下两个月。\n\n从今往后:每天吃掉一份食物、喝掉一份水、烧掉一份燃料。饥饿到 7、断水到 4、冻伤到 6、重病到 6——任何一条触线,就是终点。\n\n每个阶段你只能做一件事:化雪取水、冒险搜刮、以物易物、拆家具烧火、静养、守夜戒备。\n\n活到第六十天,雪会停。",[
+    {t:"开始熬冬",fn:nightCheckpoint}
+  ]);
+}
+
+function nightConsume(i){
+  var n=S.night;
+  if(n.flags["c"+i])return;
+  n.flags["c"+i]=1;
+  if(i===0)return;
+  var d=NIGHT_DAYS[i]-NIGHT_DAYS[i-1];
+  var fm=S.familyFlag?1.3:1;
+  var fNeed=Math.ceil(d*fm),wNeed=Math.ceil(d*fm),fuNeed=d;
+  if(S.res.food>=fNeed){S.res.food-=fNeed;n.hunger=Math.max(0,n.hunger-Math.ceil(d/2));}
+  else{n.hunger+=fNeed-S.res.food;S.res.food=0;}
+  if(S.res.water>=wNeed){S.res.water-=wNeed;n.thirst=Math.max(0,n.thirst-Math.ceil(d/2));}
+  else{n.thirst+=wNeed-S.res.water;S.res.water=0;}
+  if(S.res.fuel>=fuNeed){S.res.fuel-=fuNeed;n.frost=Math.max(0,n.frost-1);}
+  else{var def=fuNeed-S.res.fuel;var rate=S.res.warmth>=45?0.5:1;S.res.fuel=0;n.frost+=Math.ceil(def*rate);}
+}
+
+function nightCheckpoint(){
+  var n=S.night,i=n.i;
+  nightConsume(i);
+  if(n.hunger>=7)return nightDeath("hunger");
+  if(n.thirst>=4)return nightDeath("thirst");
+  if(n.frost>=6)return nightDeath("frost");
+  if(n.sick>=6)return nightDeath("sick");
+  if(NIGHT_DAYS[i]>=60)return springEnding();
+  var ev=NIGHT_EVENTS[i];
+  if(ev&&!n.flags["e"+i]){n.flags["e"+i]=1;ev();}
+  else nightActions();
+}
+
+function nightStatusText(){
+  var n=S.night,day=NIGHT_DAYS[n.i];
+  var s="末世第 "+day+" 天 · 室外 "+NIGHT_TEMP[day]+"°C。\n\n";
+  s+="【存粮】食物 "+S.res.food+" 天 · 饮水 "+S.res.water+" 天 · 燃料 "+S.res.fuel+" · 药品 "+S.res.meds+" · 硬通货 "+S.res.barter+"\n";
+  s+="【状态】饥饿 "+n.hunger+"/7 · 缺水 "+n.thirst+"/4 · 冻伤 "+n.frost+"/6 · 病 "+n.sick+"/6 · 防御 "+S.defense+"\n\n";
+  s+="选择这个阶段的生存行动(只能选一个):";
+  return s;
+}
+
+function nightActions(){
+  var choices=[];
+  for(var i=0;i<NIGHT_ACTS.length;i++){
+    (function(a){choices.push({t:a.name,sub:a.sub,disabled:!a.can(),fn:a.fn});})(NIGHT_ACTS[i]);
+  }
+  scene("长夜 · 抉择",nightStatusText(),choices);
+}
+function nightActions2(txt){ scene("",txt||"",[{t:"继续",fn:nightActions}]); }
+function actScene(txt){ scene("长夜 · 行动",txt,[{t:"继续",fn:advanceNight}]); }
+function advanceNight(){ S.night.i++; nightCheckpoint(); }
+
+var NIGHT_ACTS=[
+  {name:"化雪取水",sub:"燃料 -4 → 饮水 +8",can:function(){return S.res.fuel>=4;},fn:function(){
+    S.res.fuel-=4;S.res.water+=8;
+    actScene("你在炉子上化了一整天的雪。水是浑的,烧开了才敢喝,但活着的东西不讲究。\n\n饮水 +8,燃料 -4");
+  }},
+  {name:"拆家具烧火",sub:"燃料 +8,防御 -4(最多三次)",can:function(){return (S.night.flags.junk||0)<3;},fn:function(){
+    S.night.flags.junk=(S.night.flags.junk||0)+1;S.res.fuel+=8;S.defense=Math.max(0,S.defense-4);
+    actScene("衣柜、书桌、前任房东留下的沙发,一件件变成了炉膛里的火光。\n\n燃料 +8,防御 -4");
+  }},
+  {name:"冒险外出搜刮",sub:"有受伤风险;器械、煤球提高成功率",can:function(){return true;},fn:function(){
+    var p=0.55+(S.res.tools>=10?0.15:0)+(S.dog?0.1:0);
+    if(Math.random()<p){
+      var pool=[{k:"food",v:6,n:"食物 +6 天(找到一家被雪埋的便利店仓库)"},{k:"fuel",v:5,n:"燃料 +5(劈回了半个公交站台的木料)"},{k:"meds",v:4,n:"药品 +4(药店废墟的柜台底下)"},{k:"water",v:6,n:"饮水 +6 天(搬回一箱冻成石块的瓶装水)"}];
+      var it=pool[Math.floor(Math.random()*pool.length)];
+      S.res[it.k]+=it.v;
+      actScene("你裹成粽子,在及膝的雪里跋涉了四个小时。\n\n"+it.n);
+    }else{
+      S.night.sick+=1;
+      actScene("你在结冰的楼梯上摔了下来,又在风雪里耽误了太久。\n\n回家就开始发烧。病 +1");
+    }
+  }},
+  {name:"以物易物",sub:"硬通货 -6 → 食物(汇率逐次变差)",can:function(){return S.res.barter>=6;},fn:function(){
+    var t=S.night.flags.trades||0;
+    var r=Math.max(3,5-t);
+    if(S.night.flags.market20&&t===0)r+=1;
+    S.night.flags.trades=t+1;S.res.barter-=6;S.res.food+=r;
+    actScene("地下易市藏在地铁站废墟里。盐和白酒还是硬通货,但价格一天比一天黑。\n\n硬通货 -6,食物 +"+r+" 天");
+  }},
+  {name:"静养",sub:"病 -2,冻伤 -1;病重时自动用药",can:function(){return true;},fn:function(){
+    var n=S.night,extra="";
+    n.sick=Math.max(0,n.sick-2);n.frost=Math.max(0,n.frost-1);
+    if(n.sick>=3&&S.res.meds>=5){S.res.meds-=5;n.sick=Math.max(0,n.sick-3);extra="\n\n你把攒下的抗生素吃了三天。病 -3,药品 -5";}
+    actScene("你给自己放了假:热水,睡眠,给煤球梳毛,把台账誊写一遍。\n\n病 -2,冻伤 -1"+extra);
+  }},
+  {name:"守夜戒备",sub:"防御 +4",can:function(){return true;},fn:function(){
+    S.defense+=4;
+    actScene("你和老陈轮班守了两夜"+(S.dog?",煤球趴在门缝边,耳朵比警报器灵":"")+"。\n\n楼道里安静得像坟。防御 +4");
+  }}
+];
+
+var NIGHT_EVENTS=[
+  function(){
+    scene("长夜 · 第 1 天 · 第一夜","彻底的黑暗里,雪声像海潮。\n\n整栋楼的哭喊声、砸门声,到后半夜才渐渐平息。你点起蜡烛,听见自己的心跳。\n\n对门传来老人压抑的咳嗽——独居的老头,前世的这个冬天,他没有熬过去。",[
+      {t:"敲开对门,塞给他暖宝宝和蜡烛",sub:"人心 +3,邻里 +5",fn:function(){S.karma+=3;S.neighbor+=5;nightActions2("老头捧着蜡烛,手抖得像风里的树叶。\n\n「好孩子……好孩子。」\n\n人心 +3,邻里 +5");}},
+      {t:"守在自己家里,不出声",fn:function(){nightActions();}}
+    ]);
+  },
+  function(){
+    scene("长夜 · 第 3 天","半夜,楼上响起砸门声和女人的尖叫——秩序崩塌后的第三夜,有人露出了獠牙。\n\n你听见重物倒地的闷响。声音越来越弱。",[
+      {t:"抄起钢管冲上去喝止",sub:"防御 +3,人心 +5",fn:function(){S.karma+=5;S.defense+=3;nightActions2("你踹开楼梯间的门,钢管砸在栏杆上,巨响震得整层楼死一般安静。\n\n两个影子跳窗逃了,受伤的女人被邻居抬了回去。\n\n门后有人小声说:「五楼那小伙子,是个硬茬。」\n\n防御 +3,人心 +5");}},
+      {t:"用被蒙住头",sub:"人心 -2",fn:function(){S.karma-=2;nightActions2("声音后来停了。\n\n你整夜没睡,盯着天花板,想起前世——那时,你连钢管都没有。\n\n人心 -2");}}
+    ]);
+  },
+  function(){
+    scene("长夜 · 第 7 天","门被轻轻叩响。王婶站在门口,端着一只豁口的碗,人瘦了一圈:\n\n「小伙子……婶不白要,婶拿手艺换。」\n\n碗里是六个冻得梆硬的饺子。"+(S.familyFlag?"\n\n妈妈在你身后小声说:「要不明儿,给王婶也盛一碗?」":""),[
+      {t:"收下饺子,回她半袋米",sub:"食物 -2,邻里 +8,人心 +3,得:王婶的旧围巾",fn:function(){S.res.food=Math.max(0,S.res.food-2);S.neighbor+=8;S.karma+=3;S.outfit=S.outfit||{};S.outfit.scarf=1;nightActions2("王婶端着米,在门口站了好几秒,忽然背过身去抹眼睛。\n\n「好孩子。」\n\n临走她解下自己的旧围巾,不由分说套在你脖子上。\n\n食物 -2,邻里 +8,人心 +3\n\n(装扮入手:王婶的旧围巾,可在人物页查看)");}},
+      {t:"用硬通货换她两袋面",sub:"硬通货 -3,食物 +6,邻里 +5",disabled:S.res.barter<3,fn:function(){S.res.barter-=3;S.res.food+=6;S.neighbor+=5;nightActions2("这是交易,不是施舍——王婶更能接受这样的体面。\n\n硬通货 -3,食物 +6,邻里 +5");}},
+      {t:"隔着门说没有了",sub:"邻里 -6",fn:function(){S.neighbor-=6;nightActions2("她的脚步声在门口停了很久,才慢慢下楼。\n\n你没有打开那扇门。\n\n邻里 -6");}}
+    ]);
+  },
+  function(){
+    var eff=S.defense+(S.chen?10:0)+(S.dog?10:0)+(S.allyZhang?5:0);
+    var pre=(S.dog?"煤球在凌晨两点把你叫醒,喉咙里滚着低吼。":"凌晨两点,楼道里响起不该有的脚步声——很轻,但不止一个人。")+(S.chen?"\n\n老陈不知何时已经站在了门后,手里横着工兵铲。":"");
+    scene("长夜 · 第 12 天 · 夜袭",pre+"\n\n他们开始撬你家的门。金属和金属,一下,又一下。",[
+      {t:"死守",sub:"防御检定:"+(S.chen?"老陈 ":"")+(S.dog?"煤球 ":"")+"与你同在",fn:function(){
+        if(eff>=55){S.karma+=2;S.neighbor+=5;nightActions2("那扇门只撑了十秒——然后是你和老陈的反攻。\n\n三分钟后,雪地上多了几行逃窜的脚印和一滩黑血。从此,这一带的夜路上流传着一个门牌号:别惹那户人家。\n\n(防御检定:大胜)");}
+        else if(eff>=30){S.res.fuel=Math.max(0,S.res.fuel-3);S.night.frost+=1;nightActions2("一场恶战。你们赢下了门,但炉子在后半夜被打翻,你在寒风里修到天亮。\n\n燃料 -3,冻伤 +1\n\n(防御检定:险胜)");}
+        else{takeRes(Math.floor(resSum()*0.2));S.night.sick+=1;
+          if(resSum()>120&&S.expo>=60){nightDeath("robbed");}
+          else nightActions2("门被撞开了。\n\n你们守住了人,没守住货。等一切结束,屋里满地狼藉,你捂着肋骨喘气。\n\n(物资损失两成,病 +1)");}
+      }},
+      {t:"破财免灾",sub:"硬通货 -8,从门缝递出去",disabled:S.res.barter<8,fn:function(){S.res.barter-=8;nightActions2("一提白酒和几条烟,从门缝里递了出去。\n\n「懂规矩。」外面的声音满意地消失了。\n\n硬通货 -8");}},
+      {t:"熄灯装死",sub:"五成把握",fn:function(){
+        if(Math.random()<0.5){nightActions2("全屋死寂。他们撬了两下,骂了句「空屋」,走了。\n\n你抱着煤球,在黑暗里出了一身汗。");}
+        else{takeRes(Math.floor(resSum()*0.12));nightActions2("手电的光柱,还是扫到了米袋。\n\n他们走时很有「职业操守」,只拿了一袋米和半箱罐头。\n\n(物资损失一成多)");}
+      }}
+    ]);
+  },
+  function(){
+    if(S.allyZhang){
+      S.res.food+=4;
+      scene("长夜 · 第 20 天","张伟裹着两层军大衣出现在门口,眉毛上挂着冰碴,手里拎着半袋黄豆:\n\n「兄弟,别嫌少。」他把袋子塞给你,「我媳妇让带的话——要不是你那五千块囤的粮,我们一家早完了。」\n\n他顿了顿:「以后有事,敲暖气管,三短一长。」\n\n食物 +4",[{t:"好",fn:nightActions}]);
+    } else if(S.neighbor>=45){
+      S.defense+=4;
+      scene("长夜 · 第 20 天","隔壁楼的幸存者敲墙三下——这是这一带自发形成的暗号:换防了,彼此照应。\n\n没有物资往来,但你知道,夜里出事,会有人听见。\n\n防御 +4",[{t:"好",fn:nightActions}]);
+    } else {
+      S.night.flags.market20=true;
+      scene("长夜 · 第 20 天","一个蒙面人在楼下雪地里用木棍写了几个字,又抹掉:\n\n「地铁站,易市,三日后。」\n\n你记下了。下次以物易物,应该能谈到更好的价。\n\n(首次交易额外 +1 食物)",[{t:"好",fn:nightActions}]);
+    }
+  },
+  function(){
+    scene("长夜 · 第 30 天 · 超级寒潮","收音机最后的电池昨天耗尽,但不需要它了——窗上的冰,已经厚得像墙。\n\n广播里说过的「第三十天极寒期」来了,零下五十二度。这种温度下,省燃料等于自杀。",[
+      {t:"多烧,把屋子烘热",sub:"燃料 -6,平安度过",disabled:S.res.fuel<6,fn:function(){S.res.fuel-=6;nightActions2("炉火烧得通红,你们围着它,像围着一个小小的太阳。\n\n燃料 -6");}},
+      {t:"省着烧,裹紧被子硬撑",sub:"冻伤 +1,病 +1",fn:function(){S.night.frost+=1;S.night.sick+=1;nightActions2("你们把所有衣服穿上,挤在一起发抖。\n\n三天后寒潮过去,你的咳嗽也留了下来。\n\n冻伤 +1,病 +1");}}
+    ]);
+  },
+  function(){
+    scene("长夜 · 第 40 天 · 空投","天空传来久违的轰鸣——军用运输机甩下几个橘色降落伞,落在东南方向三公里外。\n\n整个城区的幸存者都在动。空投点,就是新的战场。",[
+      {t:"全副武装去抢",sub:"按防御与器械结算",fn:function(){
+        var eff=S.defense+(S.chen?10:0)+(S.dog?5:0)+(S.res.tools>=10?10:0);
+        if(eff>=55){S.res.food+=10;S.res.water+=8;S.res.meds+=6;S.res.fuel+=6;S.outfit=S.outfit||{};S.outfit.goggles=1;nightActions2("你们推着雪橇冲进人群,又满载而归:压缩干粮、净水片、药品、固体燃料。\n\n老陈负手而立,没人敢靠近你们的雪橇。\n\n食物 +10,饮水 +8,药品 +6,燃料 +6\n\n(装扮入手:军用护目镜)");}
+        else if(eff>=30){S.res.food+=4;S.res.meds+=2;S.night.sick+=1;nightActions2("你抢到了半箱干粮和两盒药,也在混战里挨了一闷棍。\n\n食物 +4,药品 +2,病 +1");}
+        else{S.night.sick+=2;takeRes(Math.floor(resSum()*0.1));nightActions2("人太多了,比你强的也太多。\n\n你空着手回来,还崴了脚,路上又被人顺走了半袋盐。\n\n病 +2,物资小损");}
+      }},
+      {t:"不去,守住家",fn:function(){S.karma+=1;nightActions2("远处传来整夜的枪声和火光。\n\n你守着自己的炉子和家人。命,比货值钱。");}}
+    ]);
+  },
+  function(){
+    scene("长夜 · 第 50 天","一个女人抱着孩子跪在你门口,嘴唇冻得发紫:\n\n「求求你,孩子三天没吃东西了……我不进屋,给一口吃的就行。」\n\n孩子在她怀里,小脸青白,眼睛却还睁着。",[
+      {t:"收留他们",sub:"食物 -4,人心 +8,防御 +4",disabled:S.res.food<4,fn:function(){S.res.food-=4;S.karma+=8;S.defense+=4;S.night.flags.kid=true;nightActions2("你烧了热水,煮了粥。\n\n女人缓过来后,包下了瞭望和缝补的活;孩子学会了给煤球下口令。\n\n家里多了两口人,也多了两双干活的手。\n\n食物 -4,人心 +8,防御 +4");}},
+      {t:"给两罐吃的,指给她安置点",sub:"食物 -1,人心 +3",fn:function(){S.res.food=Math.max(0,S.res.food-1);S.karma+=3;nightActions2("「往东三公里,有社区安置点。」你指了方向,又塞给她两罐午餐肉。\n\n她千恩万谢地消失在风雪里。\n\n食物 -1,人心 +3");}},
+      {t:"「我也有家人要养。」关门",sub:"人心 -5",fn:function(){S.karma-=5;nightActions2("门关上的瞬间,你听见孩子的哭声被风撕碎。\n\n前世,也有人对你关过门。\n\n人心 -5");}}
+    ]);
+  }
+];
+
+function nightDeath(cause){
+  var day=NIGHT_DAYS[S.night.i];
+  var m={
+    hunger:{title:"苦冬",text:"第 "+day+" 天,锅彻底空了。\n\n你把最后一把米熬成粥的那天,还留着半碗,想留给明天。\n\n饥饿是缓慢的死法:先是饿,然后是冷,然后是困。\n\n你死在了和前世同一个地方——差一点,就差那么一点。\n\n【启示:食物要囤到开春,不是囤到心安。】"},
+    thirst:{title:"渴",text:"满世界都是水——雪堆到了窗台。但没有燃料,雪只是雪。\n\n你舔着窗上的冰花,想起超市里那些九块钱一箱的矿泉水。\n\n第 "+day+" 天,你死于脱水,守着一座水的坟墓。\n\n【启示:水比食物致命,而燃料就是水——记得化雪。】"},
+    frost:{title:"冻毙长夜",text:"第 "+day+" 天,炉火最后一次熄灭。\n\n你裹着所有能裹的东西,缩成前世那个熟悉的姿势。\n\n冻死其实是温柔的:先是痛,然后是困,然后,就什么都不重要了。\n\n【启示:燃料要撑六十天——拆家具、做交易、抢空投,一样别放过。】"},
+    sick:{title:"病榻",text:"一场感冒,在没有医院的世界里,就是绝症。\n\n第 "+day+" 天,你在滚烫的幻觉里,又回到了末日前第七天的早晨——如果重来一次,药房的门,你还推得开吗?\n\n【启示:病到 3 就该用药;药品和静养,总得备一样。】"},
+    robbed:{title:"怀璧其罪",text:"他们来了,而且不止是抢。\n\n你囤积的消息在楼里传了太多天,你的门,没能挡住人心。\n\n第 "+day+" 天,物资、尊严,连同「粮仓」的传说,一起被埋进雪里。\n\n前世死于天灾,这一世,死于人祸。\n\n【启示:显眼度是隐形的债。藏货、加固、结盟,一样都不能少。】"}
+  }[cause];
+  var rank=day<7?"F":day<15?"D":day<30?"C":"B";
+  S.ending={title:m.title,text:m.text,survive:day,rank:rank,sub:"未及开春 · 末世第 "+day+" 天"};
+  showEnding();
+}
+
+function springEnding(){
+  var title,text,rank;
+  if(S.defense>=40&&S.expo<=45){
+    rank="S";title="凛冬之王";
+    text="第六十天清晨,雪停了。\n\n你的单元楼,是这片城区最后一盏亮着的灯。老陈守门,煤球放哨,张伟管分配,盐和糖在你手里流转,换来了药品、弹药,和一个缩在防风墙里的小小社区。\n\n军队的破冰车碾开街道时,登记员问你是做什么的。\n\n你想了想,说:「一个提前七天知道冬天会来的人。」\n\n【凛冬之王:囤货、隐蔽、防御、人心——满分答卷,亲手写完。】";
+  } else if(S.karma>=45){
+    rank="S";title="火种";
+    text="第六十天,雪停了。你家客厅的「以物易物点」还开着。\n\n收银姑娘一家、分到罐头的孕妇、你帮过的每一张脸,在长夜里连成一张网,把整个单元楼兜住了。\n\n统计员写下:该楼幸存率,全区第一。你说是运气,他们不信。\n\n「囤货靠清醒,活下来靠人心。」\n\n【火种:物资够用,善意盈余。】";
+  } else if(S.familyFlag||S.trust>=60){
+    rank="A";title="相依为命";
+    text=S.familyFlag?
+    "一家人挤在主卧改的堡垒里,熬过了每一顿按克分配的饭。\n\n第六十天,妈妈掀开窗板看了看天:「儿子,雪停了,妈给你擀面。」\n\n前世那个没能接起的电话,这一世,变成了餐桌上热气腾腾的一副碗筷。\n\n【相依为命:你护住了最想护住的人。】":
+    "开春,你踩着没膝的积雪,走了八百里回家。\n\n推开门,炉火正旺——你爸钉的窗板、你妈囤的腊肉、你电话里一句句的叮嘱,都活着。\n\n你妈头也没抬:「洗手,吃饭。」\n\n【相依为命:隔着八百里风雪,你护住了一整个家。】";
+  } else if(S.neighbor>=55){
+    rank="A";title="远亲不如近邻";
+    text="第六十天,王婶端着一屉热包子来敲门——用你换给她的那袋盐发的面。\n\n三户人家并成了一个家:你出物资,王婶管伙食,老陈管安全。盘点时你发现,分享在末世里不是减法,是除法。\n\n【远亲不如近邻:你的盐,没有白给。】";
+  } else {
+    rank="A";title="孤独的幸存者";
+    text="你活到了第六十天,以一种精密如钟表的方式。\n\n按时吃饭,按量烧煤,台账精确到克。雪最大的时候,你发现自己已经很多天没说过一句话。\n\n你对着空荡的客厅喊了一声「妈——」,没有回答。\n\n你赢了这场冬天。只是赢得,有点安静。\n\n【孤独的幸存者:活着的代价,是活着本身。】";
+  }
+  var survive=60+(S.allyZhang?5:0)+(S.dog?3:0);
+  S.ending={title:title,text:text,survive:survive,rank:rank,sub:"熬过整个寒冬 · 第六十天,雪停了"};
+  showEnding();
+}
+
+function showEnding(){
+  var e=S.ending;
+  if(e&&e.title)unlockEnding(e.title);
+  var r=S.res;
+  var bd="";
+  if(S.night){
+    var n=S.night;
+    bd+="末世第 <b>"+e.survive+"</b> 天 · "+(e.sub||"")+"\n";
+    bd+="余粮:食物 <b>"+r.food+"</b> 天 · 饮水 <b>"+r.water+"</b> 天 · 燃料 <b>"+r.fuel+"</b> · 药品 <b>"+r.meds+"</b> · 硬通货 <b>"+r.barter+"</b>\n";
+    bd+="末世状态:饥饿 <b>"+n.hunger+"/7</b> · 缺水 <b>"+n.thirst+"/4</b> · 冻伤 <b>"+n.frost+"/6</b> · 病 <b>"+n.sick+"/6</b>\n";
+    bd+="显眼度 <b>"+S.expo+"</b> · 防御 <b>"+S.defense+"</b> · 人心 <b>"+S.karma+"</b> · 家人信任 <b>"+S.trust+"</b> · 邻里 <b>"+S.neighbor+"</b>\n";
+  } else {
+    bd+="食物 <b>"+r.food+"</b> 天 · 饮水 <b>"+r.water+"</b> 天 → 基础供给 <b>"+(e.base||0)+"</b> 天\n";
+    bd+="保暖 <b>"+r.warmth+"</b> + 燃料 <b>"+r.fuel+"</b>×0.9 = 保温力 <b>"+(e.warmthScore||0)+"</b> → 生存系数 ×<b>"+((e.mult||0).toFixed?e.mult.toFixed(2):"—")+"</b>\n";
+    bd+="硬通货 <b>"+r.barter+"</b> · 药品 <b>"+r.meds+"</b> · 卫生 <b>"+r.hygiene+"</b> · 器械 <b>"+r.tools+"</b>\n";
+    bd+="显眼度 <b>"+S.expo+"</b> · 防御 <b>"+S.defense+"</b> · 人心 <b>"+S.karma+"</b> · 家人信任 <b>"+S.trust+"</b> · 邻里 <b>"+S.neighbor+"</b>\n";
+  }
+  bd+=(S.chen?"盟友:老陈 ":"")+(S.dog?"煤球 ":"")+(S.allyZhang?"张伟一家 ":"")+(S.familyFlag?"家人同守 ":"仓库 "+(S.warehouse?"有":"无"))+"\n";
+  var subline=e.sub||(e.rank.indexOf("·")>0?e.rank.split("·")[1].trim():"");
+  var m=document.getElementById("main");
+  m.innerHTML='<div class="ending-wrap">'+
+    '<div class="survive-big">'+e.survive+'<small> 天</small></div>'+
+    '<div class="ending-sub">'+(S.night?"末世寒冬生存时间":"末日寒冬生存时间")+'</div>'+
+    '<div class="rank">'+e.rank.split(" ")[0]+'</div>'+
+    '<div class="ending-title">《 '+e.title+' 》</div>'+
+    '<div class="ending-sub">'+subline+'</div>'+
+    '<div class="breakdown">'+bd.replace(/\n/g,"<br>")+'</div>'+
+    '<div class="ending-text">'+e.text+'</div>'+
+    '<button class="start-btn" style="letter-spacing:4px;font-size:14px;padding:10px 32px" onclick="restart()">再活一次</button>'+
+    '<div class="hint">不同的囤货路线、人心选择与熬冬决策,通往十余种结局</div>'+
+    '</div>';
+  document.getElementById("stats").style.display="none";
+  save();
+  window.scrollTo(0,0);
+}
+
+function restart(){
+  if(!confirm("确定放弃当前进度,重新开始七天?"))return;
+  wipe(); S=newGame(); startGame(true);
+}
+
+var THEMES=[
+  {id:"",name:"凛冬将至",snow:"rgba(200,225,255,0.8)",dots:["#0a0e14","#8fd0ff","#ffd98a"]},
+  {id:"t-hearth",name:"暖冬壁炉",snow:"rgba(255,220,180,0.75)",dots:["#161009","#ffc98a","#ffe3a6"]},
+  {id:"t-journal",name:"生存手记",snow:"rgba(120,100,70,0.35)",dots:["#e9e0cd","#3e6e8f","#a8742a"]},
+  {id:"t-term",name:"警报终端",snow:"rgba(126,227,135,0.5)",dots:["#050b06","#7ee387","#d8ffa0"]},
+  {id:"t-blood",name:"血月长夜",snow:"rgba(255,200,200,0.6)",dots:["#120a0c","#f0a8a8","#ffd98a"]}
+];
+var SNOW_COLOR=THEMES[0].snow;
+var CUR_THEME="";
+
+function applyTheme(id){
+  CUR_THEME=id||"";
+  document.body.className=CUR_THEME;
+  for(var i=0;i<THEMES.length;i++)if(THEMES[i].id===(id||""))SNOW_COLOR=THEMES[i].snow;
+  try{localStorage.setItem("rebirth7_theme",CUR_THEME);}catch(e){}
+  buildThemePanel();
+}
+function buildThemePanel(){
+  var p=document.getElementById("themepanel");
+  var h='<h4>主题风格</h4>';
+  for(var i=0;i<THEMES.length;i++){
+    var t=THEMES[i];
+    h+='<button class="themeopt'+(CUR_THEME===t.id?" on":"")+'" onclick="applyTheme(\''+t.id+'\')">'+
+       '<span class="tdots">'+t.dots.map(function(c){return '<i style="background:'+c+'"></i>';}).join("")+'</span>'+t.name+'</button>';
+  }
+  h+='<div style="font-size:11px;color:var(--dim);margin-top:8px;letter-spacing:1px">选择自动保存,雪花颜色随主题变化</div>';
+  p.innerHTML=h;
+}
+function initTheme(){
+  var saved="";
+  try{saved=localStorage.getItem("rebirth7_theme")||"";}catch(e){}
+  applyTheme(saved);
+  buildThemePanel();
+  document.getElementById("gearbtn").onclick=function(){
+    var p=document.getElementById("themepanel");
+    p.style.display=p.style.display==="none"?"block":"none";
+  };
+}
+
+var ALL_ENDINGS=["凛冬之王","火种","相依为命","远亲不如近邻","孤独的幸存者","苦冬","渴","冻毙长夜","病榻","怀璧其罪"];
+function endingsMeta(){
+  try{return JSON.parse(localStorage.getItem("rebirth7_endings")||"[]");}catch(e){return [];}
+}
+function unlockEnding(t){
+  try{
+    var m=endingsMeta();
+    if(m.indexOf(t)<0){m.push(t);localStorage.setItem("rebirth7_endings",JSON.stringify(m));}
+  }catch(e){}
+}
+
+var RES_DESC={
+  food:"长夜中每天消耗 1 天份。断粮后饥饿累积,到 7 即为极限。批发市场大宗最划算。",
+  water:"每天消耗 1 天份,断水 4 天即到极限。燃料充足时,化雪取水可补充。",
+  warmth:"御寒衣物与装备。达到 45 以上,长夜中燃料不足时冻伤累积减半。",
+  fuel:"每天消耗 1,是取暖与化雪的命脉。第 30 天的超级寒潮会额外大量消耗。",
+  meds:"静养且病≥3 时自动消耗 5 点治病。没有药的长夜,一场感冒就是绝症。",
+  hygiene:"卫生用品,降低患病风险,是体面活着的底线。",
+  tools:"工具与防身器械。达到 10 以上,外出搜刮与抢空投的成功率显著提高。",
+  barter:"盐、糖、烟、酒——长夜黑市的硬通货,以物易物的本金。"
+};
+
+function getOutfit(){
+  var w=S.res.warmth;
+  var tier=w>=45?3:w>=30?2:w>=15?1:0;
+  var names=["初来乍到","入冬装束","严冬装束","极寒战装"];
+  var heads=["无","毛线帽","护耳棉帽","军用极寒帽"];
+  var tops=["旧外套","加绒卫衣","加厚羽绒服","军大衣加极地内胆"];
+  var bots=["单裤","秋裤加外裤","防风棉裤","军用雪地裤"];
+  var shoes=["旧运动鞋","徒步鞋","雪地靴","极地靴"];
+  var flavors=["这一身过冬,有点悬。","像模像样的过冬打扮。","零下二十度也敢出门了。","这一身,能扛到零下四十度。"];
+  var acc=[],o=S.outfit||{};
+  if(o.scarf)acc.push("王婶的旧围巾");
+  if(S.chen)acc.push("老陈的军手套");
+  if(S.res.tools>=10)acc.push("磨亮的钢管");
+  if(o.goggles)acc.push("军用护目镜");
+  if(S.dog)acc.push("煤球的牵引绳");
+  if(S.defense>=50)acc.push("退伍纪念徽章");
+  return {tier:tier,name:names[tier],head:heads[tier],top:tops[tier],bottom:bots[tier],shoe:shoes[tier],flavor:flavors[tier],acc:acc};
+}
+
+function getSignature(){
+  if(S.night){
+    if(S.defense>=45)return "这栋楼里最不好惹的人";
+    if(S.night.hunger>=4||S.res.food<10)return "勒紧裤腰带的幸存者";
+    return "精打细算的熬冬者";
+  }
+  if(S.expo>=60)return "楼里人尽皆知的「大户」";
+  if(S.res.barter>=25)return "邻居口中的「百货商人」";
+  if(S.defense>=40)return "深藏不露的硬茬";
+  return "一个提前知道冬天会来的普通人";
+}
+
+var charCur="status";
+function showChar(){
+  var ov=document.getElementById("charov");
+  ov.innerHTML='<div class="charbox fadein">'+
+    '<div class="charhead"><span class="chartitle">主角档案</span><button class="charclose" onclick="closeChar()">关闭</button></div>'+
+    '<div class="ctabs">'+
+    '<button class="ctab" id="tab_status" onclick="charTab(\'status\')">状态</button>'+
+    '<button class="ctab" id="tab_res" onclick="charTab(\'res\')">物资</button>'+
+    '<button class="ctab" id="tab_outfit" onclick="charTab(\'outfit\')">装扮</button>'+
+    '</div><div id="charbody"></div></div>';
+  ov.style.display="block";
+  charTab(charCur);
+}
+function closeChar(){document.getElementById("charov").style.display="none";}
+function charTab(t){
+  charCur=t;
+  var tabs=["status","res","outfit"];
+  for(var i=0;i<tabs.length;i++){
+    var el=document.getElementById("tab_"+tabs[i]);
+    if(el)el.className="ctab"+(tabs[i]===t?" on":"");
+  }
+  var body=document.getElementById("charbody");
+  if(body)body.innerHTML=t==="status"?charStatus():t==="res"?charRes():charOutfit();
+}
+function charStatus(){
+  var h="",night=!!S.night;
+  var when=night?("末世第 "+NIGHT_DAYS[S.night.i]+" 天 · 熬冬"):("第 "+S.day+" / 7 天 · "+SLOTNAMES[S.slot]);
+  h+='<div class="rescard"><div class="rname">'+when+' <b style="color:var(--ice)">'+getSignature()+'</b></div>'+
+     '<div class="rdesc">资金 '+fmt(S.money)+' · 仓储 '+resSum()+' / '+capacity()+'</div></div>';
+  h+='<div class="rescard">'+
+     '<div class="rname">显眼度 <b style="color:'+(S.expo>=60?"var(--bad)":"var(--gold)")+'">'+S.expo+'</b> · 防御 <b>'+S.defense+'</b> · 人心 <b>'+S.karma+'</b> · 家人信任 <b>'+S.trust+'</b> · 邻里 <b>'+S.neighbor+'</b></div>'+
+     '<div class="rdesc">显眼度越高越容易被盯上;防御决定夜袭与空投的底气;人心影响火种等结局。</div></div>';
+  if(night){
+    var n=S.night;
+    h+='<div class="rescard"><div class="rname">末世状态:饥饿 <b>'+n.hunger+'/7</b> · 缺水 <b>'+n.thirst+'/4</b> · 冻伤 <b>'+n.frost+'/6</b> · 病 <b>'+n.sick+'/6</b></div>'+
+       '<div class="rdesc">任何一项触线,熬冬即告失败。</div></div>';
+  }
+  var allies=[["老陈",S.chen],["煤球",S.dog],["张伟一家",S.allyZhang],["家人同守",S.familyFlag],["秘密仓库",S.warehouse],["二手车",S.hasCar]];
+  var ah="";
+  for(var i=0;i<allies.length;i++)ah+='<span class="chip'+(allies[i][1]?" got":" lock")+'">'+(allies[i][1]?allies[i][0]:"未解锁")+'</span>';
+  h+='<div class="rescard"><div class="rname" style="font-size:13px;color:var(--dim);letter-spacing:2px">同行者与家底</div><div style="margin-top:4px">'+ah+'</div></div>';
+  var got=endingsMeta(),eh="";
+  for(var j=0;j<ALL_ENDINGS.length;j++)eh+='<span class="chip'+(got.indexOf(ALL_ENDINGS[j])>=0?" got":" lock")+'">'+(got.indexOf(ALL_ENDINGS[j])>=0?ALL_ENDINGS[j]:"？？？")+'</span>';
+  h+='<div class="rescard"><div class="rname" style="font-size:13px;color:var(--dim);letter-spacing:2px">已解锁结局 '+got.length+' / '+ALL_ENDINGS.length+'</div><div style="margin-top:4px">'+eh+'</div>'+
+     '<div class="rdesc">结局收集跨周目保存在本机,解锁全部结局即是通关认证。</div></div>';
+  return h;
+}
+function charRes(){
+  var h="";
+  for(var i=0;i<RES_DEF.length;i++){
+    var k=RES_DEF[i][0],nm=RES_DEF[i][1],v=S.res[k];
+    var pct=Math.min(100,Math.round(v/capacity()*100));
+    h+='<div class="rescard"><div class="rname">'+nm+' <b>'+v+'</b>'+
+       '<span style="float:right;color:var(--dim);font-size:12px">占仓储 '+pct+'%</span></div>'+
+       '<div class="storbar"><div class="storfill'+(pct>=85?" danger":"")+'" style="width:'+pct+'%"></div></div>'+
+       '<div class="rdesc">'+RES_DESC[k]+'</div></div>';
+  }
+  return h;
+}
+function charOutfit(){
+  var o=getOutfit();
+  var rows=[["头部",o.head],["上身",o.top],["下身",o.bottom],["鞋履",o.shoe]];
+  var h='<div class="otier">'+o.name+'</div>';
+  for(var i=0;i<rows.length;i++){
+    h+='<div class="oslot"><span class="oname">'+rows[i][0]+'</span><span class="oval">'+rows[i][1]+'</span></div>';
+  }
+  var acc=o.acc.length?o.acc.join(" · "):"暂无";
+  h+='<div class="oslot"><span class="oname">随身</span><span class="oval" style="font-size:13px">'+acc+'</span></div>';
+  h+='<div class="odesc">'+o.flavor+'<br>装扮随保暖值自动升级;部分随身物件来自剧情遭遇,收集它们也是活着的样子。</div>';
+  return h;
+}
+
+function titleScreen(){
+  var m=document.getElementById("main");
+  m.innerHTML='<div class="title-screen">'+
+    '<div class="game-title">重生七日</div>'+
+    '<div class="game-subtitle">凛 冬 将 至</div>'+
+    '<div class="hint" style="margin-top:-26px;margin-bottom:10px">已解锁结局 '+endingsMeta().length+' / '+ALL_ENDINGS.length+'</div>'+
+    '<button class="start-btn" id="btn-start">开始七天</button>'+
+    '<div class="hint blink">末日重生囤货生存 · 含长夜熬冬篇 · v1.3</div>'+
+    (hasSave()?'<button class="start-btn" style="margin-top:14px;letter-spacing:4px;font-size:13px;padding:8px 26px;border-color:var(--line);color:var(--dim)" id="btn-continue">继续上次</button>':"")+
+    '<div class="hint" style="max-width:420px;line-height:2">你重生回到了末日前第7天。<br>极寒长夜将于 11 月 19 日降临。<br>囤积物资,藏好自己,护住想护住的人。</div>'+
+    '</div>';
+  document.getElementById("btn-start").onclick=function(){wipe();S=newGame();startGame(true);};
+  var c=document.getElementById("btn-continue");
+  if(c)c.onclick=function(){S=load();startGame(false);};
+  document.getElementById("hdr").style.display="none";
+  document.getElementById("stats").style.display="none";
+  document.getElementById("footer").style.display="none";
+}
+function hasSave(){try{return !!localStorage.getItem("rebirth7_save");}catch(e){return false;}}
+
+function startGame(fresh){
+  S.outfit=S.outfit||{};
+  document.getElementById("hdr").style.display="block";
+  document.getElementById("footer").style.display="block";
+  if(S.ending){showEnding();return;}
+  if(fresh){
+    scene("序 · 前世","末世第23天。零下四十一度。\n\n你蜷在结了冰的出租屋里,裹着家里所有的衣服,呼出的白气在眉毛上凝霜。胃里那点最后一包方便面的幻觉早就消化完了。\n\n手机早就没电了。它黑屏前的最后一个未接来电,是三天前,你妈打来的。\n\n意识涣散的最后一刻,你想:如果再来一次……\n\n——你猛地睁开眼。\n\n天花板。吊灯。墙上的挂历。\n\n手机在床头柜上嗡嗡震动,屏幕亮起:\n\n【11月12日 星期五】\n\n距离「长夜」,还有七天。",[
+      {t:"这一世,我要活下去",fn:function(){nextSlot();}}
+    ]);
+  } else {
+    if(S.night){nightCheckpoint();return;}
+    var b=storyBeat(); if(b)b(); else showMap();
+  }
+}
+
+(function snow(){
+  var cv=document.getElementById("snow"),ctx=cv.getContext("2d");
+  var W,H,flakes=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+  window.addEventListener("resize",resize);resize();
+  for(var i=0;i<60;i++)flakes.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+0.6,s:Math.random()*0.8+0.3,w:Math.random()*1.2-0.6,o:Math.random()*0.5+0.2});
+  function tick(){
+    ctx.clearRect(0,0,W,H);
+    var intensity=S&&S.day>=5?1.8:1;
+    ctx.fillStyle=SNOW_COLOR;
+    for(var i=0;i<flakes.length;i++){
+      var f=flakes[i];
+      f.y+=f.s*intensity; f.x+=f.w*intensity+Math.sin(f.y/40)*0.3;
+      if(f.y>H){f.y=-5;f.x=Math.random()*W;}
+      if(f.x>W)f.x=0; if(f.x<0)f.x=W;
+      ctx.globalAlpha=f.o;
+      ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,6.283);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+
+document.getElementById("btn-restart").onclick=restart;
+document.getElementById("btn-char").onclick=function(){if(S)showChar();};
+initTheme();
+titleScreen();
+</script>
+</body>
+</html>
